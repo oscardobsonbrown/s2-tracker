@@ -1125,7 +1125,7 @@ importers:
         version: 0.13.11(typescript@5.9.3)(zod@4.3.6)
       '@vercel/blob':
         specifier: ^2.0.0
-        version: 2.3.2
+        version: 2.3.3
       zod:
         specifier: ^4.1.13
         version: 4.3.6
@@ -3127,6 +3127,12 @@ packages:
 
   '@napi-rs/wasm-runtime@1.1.2':
     resolution: {integrity: sha512-sNXv5oLJ7ob93xkZ1XnxisYhGYXfaG9f65/ZgYuAu3qt7b3NadcOEhLvx28hv31PgX8SZJRYrAIPQilQmFpLVw==}
+    peerDependencies:
+      '@emnapi/core': ^1.7.1
+      '@emnapi/runtime': ^1.7.1
+
+  '@napi-rs/wasm-runtime@1.1.3':
+    resolution: {integrity: sha512-xK9sGVbJWYb08+mTJt3/YV24WxvxpXcXtP6B172paPZ+Ts69Re9dAr7lKwJoeIx8OoeuimEiRZ7umkiUVClmmQ==}
     peerDependencies:
       '@emnapi/core': ^1.7.1
       '@emnapi/runtime': ^1.7.1
@@ -5780,8 +5786,8 @@ packages:
       vue-router:
         optional: true
 
-  '@vercel/blob@2.3.2':
-    resolution: {integrity: sha512-FjlTJ5ffGj0RssrU0dJ90Zgr83AdhpIs2y9f3x386w+q9sM0P8m8Ouxsm3fqsjr4IyqTTo7Ioc2PJqxxOKNhjA==}
+  '@vercel/blob@2.3.3':
+    resolution: {integrity: sha512-MtD7VLo6hU07eHR7bmk5SIMD290q574UaNYTe46qeyRT+hWrCy26CoAqfd7PnIefVXvRehRZBzukxuTO9iGTVg==}
     engines: {node: '>=20.0.0'}
 
   '@vercel/microfrontends@1.3.0':
@@ -13492,6 +13498,13 @@ snapshots:
       '@tybys/wasm-util': 0.10.1
     optional: true
 
+  '@napi-rs/wasm-runtime@1.1.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)':
+    dependencies:
+      '@emnapi/core': 1.9.1
+      '@emnapi/runtime': 1.9.1
+      '@tybys/wasm-util': 0.10.1
+    optional: true
+
   '@neoconfetti/react@1.0.0': {}
 
   '@neondatabase/serverless@1.0.2':
@@ -14894,7 +14907,7 @@ snapshots:
     dependencies:
       '@emnapi/core': 1.9.1
       '@emnapi/runtime': 1.9.1
-      '@napi-rs/wasm-runtime': 1.1.2(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)
+      '@napi-rs/wasm-runtime': 1.1.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)
     optional: true
 
   '@rolldown/binding-win32-arm64-msvc@1.0.0-rc.12':
@@ -16482,7 +16495,7 @@ snapshots:
       next: 16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.59.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       react: 19.2.1
 
-  '@vercel/blob@2.3.2':
+  '@vercel/blob@2.3.3':
     dependencies:
       async-retry: 1.3.3
       is-buffer: 2.0.5
