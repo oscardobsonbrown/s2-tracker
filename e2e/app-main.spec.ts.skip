@@ -1,0 +1,41 @@
+import { expect, test } from "@playwright/test";
+
+test.describe("App Main Application", () => {
+  test("app loads successfully", async ({ page }) => {
+    await page.goto("http://localhost:3000");
+
+    // Wait for page to be fully loaded
+    await page.waitForLoadState("networkidle");
+
+    // Basic smoke test - page should load without errors
+    await expect(page).toHaveTitle(/.+/);
+
+    // Check that the page has content
+    const body = page.locator("body");
+    await expect(body).not.toBeEmpty();
+
+    // Verify no error pages
+    await expect(page.locator("text=404")).not.toBeVisible();
+    await expect(page.locator("text=500")).not.toBeVisible();
+    await expect(page.locator("text=Error")).not.toBeVisible();
+  });
+
+  test("app has basic structure", async ({ page }) => {
+    await page.goto("http://localhost:3000");
+    await page.waitForLoadState("networkidle");
+
+    // Check for basic HTML structure
+    const html = page.locator("html");
+    await expect(html).toHaveAttribute("lang", /.+/);
+
+    // Body should be visible
+    const body = page.locator("body");
+    await expect(body).toBeVisible();
+
+    // Check if there's any content in the main area
+    const main = page.locator("main, #__next, [role='main']").first();
+    if (await main.isVisible().catch(() => false)) {
+      await expect(main).not.toBeEmpty();
+    }
+  });
+});

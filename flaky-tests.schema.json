@@ -1,0 +1,85 @@
+{
+  "$id": "flaky-tests.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Flaky Test Configuration",
+  "description": "Schema for tracking and quarantining flaky tests",
+  "type": "object",
+  "properties": {
+    "description": {
+      "type": "string",
+      "description": "Description of this configuration file"
+    },
+    "quarantinePolicy": {
+      "type": "object",
+      "properties": {
+        "maxRetries": {
+          "type": "integer",
+          "description": "Maximum retries for flaky tests before quarantine",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "autoQuarantineThreshold": {
+          "type": "integer",
+          "description": "Number of consecutive failures before auto-quarantine",
+          "minimum": 1
+        },
+        "maxQuarantineDuration": {
+          "type": "string",
+          "description": "Maximum duration a test can stay in quarantine",
+          "pattern": "^\\d+[d|w|m]$"
+        }
+      },
+      "required": [
+        "maxRetries",
+        "autoQuarantineThreshold",
+        "maxQuarantineDuration"
+      ]
+    },
+    "tests": {
+      "type": "array",
+      "description": "List of quarantined test cases",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Full test name or pattern"
+          },
+          "file": {
+            "type": "string",
+            "description": "Test file path"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why this test is quarantined"
+          },
+          "quarantinedAt": {
+            "type": "string",
+            "format": "date"
+          },
+          "issueUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "jiraTicket": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "file", "reason", "quarantinedAt"]
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "lastUpdated": {
+          "type": "string",
+          "format": "date"
+        },
+        "totalQuarantined": {
+          "type": "integer"
+        }
+      }
+    }
+  },
+  "required": ["quarantinePolicy", "tests"]
+}

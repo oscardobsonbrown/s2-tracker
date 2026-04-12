@@ -1,0 +1,72 @@
+{
+  "name": "next-ship",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/next-ship",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": true,
+      "installOhMyZshConfig": true,
+      "upgradePackages": true
+    }
+  },
+  "forwardPorts": [3000, 3001, 3002, 5555, 5432, 6379],
+  "portsAttributes": {
+    "3000": {
+      "label": "Web App",
+      "onAutoForward": "notify"
+    },
+    "3001": {
+      "label": "API",
+      "onAutoForward": "silent"
+    },
+    "3002": {
+      "label": "API 2",
+      "onAutoForward": "silent"
+    },
+    "5555": {
+      "label": "Prisma Studio",
+      "onAutoForward": "silent"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    },
+    "6379": {
+      "label": "Redis",
+      "onAutoForward": "silent"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/scripts/post-create.sh",
+  "remoteUser": "node",
+  "remoteEnv": {
+    "DOPPLER_TOKEN_FILE": "/run/secrets/doppler/token",
+    "DOPPLER_PROJECT": "next-ship",
+    "DOPPLER_CONFIG_SHARED": "dev_shared",
+    "DOPPLER_CONFIG_APP": "dev_app",
+    "DOPPLER_CONFIG_WEB": "dev_web",
+    "DOPPLER_CONFIG_API": "dev_api"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "biomejs.biome",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "Prisma.prisma",
+        "ms-vscode.vscode-typescript-next"
+      ],
+      "settings": {
+        "editor.defaultFormatter": "biomejs.biome",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  "mounts": [
+    "source=next-ship-pnpm-cache,target=/home/node/.local/share/pnpm/store,type=volume",
+    "source=${localEnv:DOPPLER_TOKEN_HOST_PATH},target=/run/secrets/doppler/token,type=bind,readonly"
+  ]
+}

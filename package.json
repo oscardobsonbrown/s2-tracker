@@ -1,0 +1,114 @@
+{
+  "name": "next-ship",
+  "version": "0.4.5",
+  "description": "a lightweight, production-ready turborepo template",
+  "homepage": "https://github.com/oscardobsonbrown/next-ship#readme",
+  "bugs": {
+    "url": "https://github.com/oscardobsonbrown/next-ship/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oscardobsonbrown/next-ship.git"
+  },
+  "license": "MIT",
+  "author": "Oscar Dobson-Brown",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "next-ship": "dist/index.js"
+  },
+  "directories": {
+    "doc": "docs"
+  },
+  "files": [
+    "dist/index.js"
+  ],
+  "scripts": {
+    "build": "turbo build",
+    "prepack": "tsup",
+    "dev": "turbo dev",
+    "dev:doppler": "./scripts/doppler-run.sh shared -- pnpm dev",
+    "dev:app:doppler": "./scripts/doppler-run.sh app -- pnpm --filter app dev",
+    "dev:web:doppler": "./scripts/doppler-run.sh web -- pnpm --filter web dev",
+    "dev:api:doppler": "./scripts/doppler-run.sh api -- pnpm --filter api dev",
+    "dev:compose:doppler": "docker compose -f docker-compose.dev.yml up --build",
+    "doppler:bootstrap": "./scripts/doppler-bootstrap.sh",
+    "check": "npx ultracite@latest check",
+    "dead-code": "knip --no-exit-code",
+    "duplicate-code": "jscpd --min-lines 20 --min-tokens 80 --threshold 100 --reporters console --ignore \"**/node_modules/**,**/.next/**,**/coverage/**,**/dist/**,**/__tests__/**\" \"apps\" \"packages\"",
+    "fix": "npx ultracite@latest fix",
+    "format": "npx ultracite@latest fix",
+    "lint": "npx ultracite@latest check",
+    "biome:check": "biome check --write .",
+    "biome:ci": "biome ci .",
+    "test": "pnpm --filter @repo/testing build && turbo test",
+    "analyze": "turbo analyze",
+    "translate": "turbo translate",
+    "boundaries": "turbo boundaries",
+    "bump-deps": "npx npm-check-updates --deep -u -x recharts && pnpm install",
+    "bump-ui": "npx shadcn@latest add --all --overwrite -c packages/design-system",
+    "migrate": "cd packages/database && npx prisma format && npx prisma generate && npx prisma db push",
+    "clean": "git clean -xdf node_modules",
+    "check:flags": "bash scripts/check-feature-flags.sh",
+    "check:versions": "bash scripts/check-version-drift.sh",
+    "system-checks": "pnpm check:flags && pnpm check:versions && pnpm dead-code",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "playwright:install": "playwright install chromium",
+    "test:flaky": "bash scripts/flaky-tests.sh check",
+    "test:quarantined": "bash scripts/flaky-tests.sh list",
+    "quarantine:add": "bash scripts/flaky-tests.sh quarantine",
+    "quarantine:remove": "bash scripts/flaky-tests.sh unquarantine",
+    "analyze:bundle": "cd apps/web && ANALYZE=true pnpm build",
+    "tech-debt:scan": "bash scripts/tech-debt-scan.sh",
+    "check:n-plus-one": "bash scripts/check-n-plus-one.sh",
+    "act:list": "act -l 2>&1 | grep -v 'error-to-insight.yml' || true",
+    "act:ci": "act pull_request --workflows .github/workflows/ci.yml",
+    "act:e2e": "act pull_request --workflows .github/workflows/e2e.yml --timeout 30m",
+    "act:build-checks": "act schedule --workflows .github/workflows/build-system-checks.yml",
+    "act:release:dry": "act push --workflows .github/workflows/release.yml -n",
+    "act:error-insight": "echo '⚠️ error-to-insight.yml has YAML parsing issues with Act (works on GitHub). See ACT-README.md for details.'",
+    "act:agents-md": "act pull_request --workflows .github/workflows/agents-md-validation.yml",
+    "act:codeql": "act schedule --workflows .github/workflows/codeql.yml -n",
+    "act:release-notes": "act push --workflows .github/workflows/release-notes.yml -n",
+    "act:all": "echo 'Running all workflows except error-to-insight.yml (has Act parsing issues)...' && for wf in .github/workflows/*.yml; do [ \"$(basename $wf)\" = 'error-to-insight.yml' ] && continue; echo \"Running: $wf\"; act pull_request --workflows \"$wf\" || true; done"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.11.0",
+    "commander": "^14.0.2"
+  },
+  "devDependencies": {
+    "@auto-it/git-tag": "^11.3.6",
+    "@biomejs/biome": "2.3.8",
+    "@playwright/test": "^1.59.1",
+    "@repo/typescript-config": "workspace:*",
+    "@turbo/gen": "^2.6.3",
+    "@types/node": "^24.10.1",
+    "husky": "^9.1.7",
+    "jscpd": "^4.0.5",
+    "knip": "^5.64.1",
+    "lint-staged": "^15.5.0",
+    "tsup": "^8.5.1",
+    "turbo": "^2.9.3",
+    "typescript": "^5.9.3",
+    "ultracite": "6.3.9",
+    "vitest": "^4.0.15"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,jsonc,css,md,mdx}": [
+      "npx ultracite@latest fix"
+    ]
+  },
+  "packageManager": "pnpm@10.24.0",
+  "pnpm": {
+    "overrides": {
+      "parse5": "^7.2.1",
+      "next": "16.2.1",
+      "rimraf": "^6.1.3"
+    }
+  }
+}

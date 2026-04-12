@@ -1,0 +1,104 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "globalDependencies": ["**/.env.*local"],
+  "ui": "tui",
+  "envMode": "loose",
+  "boundaries": {
+    "tags": {
+      "config": {
+        "dependencies": {
+          "allow": ["config"]
+        }
+      },
+      "tooling": {
+        "dependencies": {
+          "allow": ["config", "tooling"]
+        }
+      },
+      "infra": {
+        "dependencies": {
+          "allow": ["config", "tooling", "infra"]
+        }
+      },
+      "observability": {
+        "dependencies": {
+          "allow": ["config", "tooling", "infra", "observability"]
+        }
+      },
+      "ui": {
+        "dependencies": {
+          "allow": [
+            "config",
+            "tooling",
+            "infra",
+            "observability",
+            "ui",
+            "feature"
+          ]
+        }
+      },
+      "feature": {
+        "dependencies": {
+          "allow": [
+            "config",
+            "tooling",
+            "infra",
+            "observability",
+            "ui",
+            "feature"
+          ]
+        }
+      }
+    }
+  },
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build", "test"],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "**/generated/**",
+        "storybook-static/**",
+        ".react-email/**",
+        "dist/**"
+      ]
+    },
+    "test": {
+      "dependsOn": ["^build", "^test"],
+      "env": ["DATABASE_URL"]
+    },
+    "//#test": {
+      "dependsOn": ["^build", "^test"],
+      "env": ["DATABASE_URL"]
+    },
+    "db:push": {
+      "cache": false,
+      "env": ["DATABASE_URL"]
+    },
+    "test:ephemeral": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "env": ["NEON_API_KEY", "NEON_PROJECT_ID"]
+    },
+    "analyze": {
+      "dependsOn": ["^analyze"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "translate": {
+      "dependsOn": ["^translate"],
+      "cache": false
+    },
+    "clean": {
+      "cache": false
+    },
+    "//#clean": {
+      "cache": false
+    },
+    "boundaries": {
+      "cache": false
+    }
+  }
+}

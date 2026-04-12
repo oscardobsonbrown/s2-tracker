@@ -1,0 +1,42 @@
+import { expect, test } from "@playwright/test";
+
+test.describe("API Health Endpoint", () => {
+  test("health endpoint returns 200", async ({ request }) => {
+    const response = await request.get("http://localhost:3002/api/health");
+
+    // Check status code
+    expect(response.status()).toBe(200);
+
+    // Check response is JSON
+    expect(response.headers()["content-type"]).toContain("application/json");
+
+    // Check response body structure
+    const body = await response.json();
+    expect(body).toBeDefined();
+    expect(typeof body).toBe("object");
+  });
+
+  test("health endpoint has required fields", async ({ request }) => {
+    const response = await request.get("http://localhost:3002/api/health");
+
+    expect(response.status()).toBe(200);
+
+    const body = await response.json();
+
+    // Common health check fields
+    // These may vary based on your implementation, adjust as needed
+    expect(body).toHaveProperty("status");
+    expect(body.status).toBeTruthy();
+  });
+
+  test("health endpoint responds in reasonable time", async ({ request }) => {
+    const start = Date.now();
+    const response = await request.get("http://localhost:3002/api/health");
+    const duration = Date.now() - start;
+
+    expect(response.status()).toBe(200);
+
+    // Should respond within 5 seconds
+    expect(duration).toBeLessThan(5000);
+  });
+});

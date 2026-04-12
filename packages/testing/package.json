@@ -1,0 +1,46 @@
+{
+  "name": "@repo/testing",
+  "version": "0.4.5",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./vitest/node": {
+      "types": "./dist/vitest/node.d.ts",
+      "default": "./dist/vitest/node.js"
+    },
+    "./vitest/react": {
+      "types": "./dist/vitest/react.d.ts",
+      "default": "./dist/vitest/react.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/vitest/node.ts src/vitest/react.ts --format esm --dts --external vitest --external @vitejs/plugin-react --external vite",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@rolldown/plugin-babel": "^0.1.7",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "vitest": "^4.0.15"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@testing-library/react": "^16.3.0",
+    "@types/node": "24.10.1",
+    "@vitejs/plugin-react": "^6.0.1",
+    "jsdom": "^27.2.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vite": "^8.0.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "labels": [
+    {
+      "name": "tech-debt",
+      "color": "B60205",
+      "description": "Technical debt that needs to be addressed"
+    },
+    {
+      "name": "tech-debt::refactoring",
+      "color": "F9D0C4",
+      "description": "Code needs refactoring to reduce complexity"
+    },
+    {
+      "name": "tech-debt::dependencies",
+      "color": "F9D0C4",
+      "description": "Outdated or deprecated dependencies"
+    },
+    {
+      "name": "tech-debt::performance",
+      "color": "F9D0C4",
+      "description": "Performance improvements needed"
+    },
+    {
+      "name": "tech-debt::documentation",
+      "color": "F9D0C4",
+      "description": "Missing or outdated documentation"
+    },
+    {
+      "name": "tech-debt::tests",
+      "color": "F9D0C4",
+      "description": "Missing or inadequate test coverage"
+    },
+    {
+      "name": "flaky-tests",
+      "color": "FF7619",
+      "description": "Unstable tests that pass/fail inconsistently"
+    },
+    {
+      "name": "bundle-size",
+      "color": "5319E7",
+      "description": "Related to bundle size optimization"
+    },
+    {
+      "name": "security",
+      "color": "D93F0B",
+      "description": "Security-related issues"
+    },
+    {
+      "name": "ci-cd",
+      "color": "0052CC",
+      "description": "CI/CD pipeline related"
+    }
+  ]
+}

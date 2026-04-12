@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "readiness-report": {
+      "source": "openhands/skills",
+      "sourceType": "github",
+      "computedHash": "3d23b4e81b5f627b5ff6346096c7abffab67b803e6df66171b1ab171c8279e5a"
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignoreWorkspaces": ["apps/app", "apps/api", "packages/database"],
+  "vitest": false,
+  "workspaces": {
+    ".": {
+      "entry": ["*.ts", "*.js"],
+      "project": ["*.{ts,js,json}"]
+    },
+    "apps/app": {
+      "entry": [
+        "app/**/page.tsx",
+        "app/**/layout.tsx",
+        "app/**/route.ts",
+        "app/**/route.tsx",
+        "app/**/actions/**/*.ts"
+      ],
+      "project": ["**/*.{ts,tsx}"]
+    },
+    "apps/web": {
+      "entry": [
+        "app/**/page.tsx",
+        "app/**/layout.tsx",
+        "app/**/route.ts",
+        "app/**/route.tsx"
+      ],
+      "project": ["**/*.{ts,tsx}"]
+    },
+    "apps/api": {
+      "entry": [
+        "app/**/route.ts",
+        "app/**/layout.tsx",
+        "app/**/global-error.tsx"
+      ],
+      "project": ["**/*.{ts,tsx}"]
+    },
+    "apps/storybook": {
+      "entry": ["**/*.stories.{ts,tsx}"],
+      "project": ["**/*.{ts,tsx}"]
+    },
+    "apps/studio": {
+      "entry": ["**/*.ts"],
+      "project": ["**/*.ts"]
+    },
+    "apps/email": {
+      "entry": ["emails/**/*.tsx"],
+      "project": ["**/*.{ts,tsx}"]
+    },
+    "packages/*": {
+      "entry": ["index.ts", "index.tsx", "server.ts", "client.ts"],
+      "project": ["**/*.{ts,tsx}"]
+    }
+  },
+  "ignore": ["**/*.d.ts", ".github/workflows/**/*"],
+  "ignoreDependencies": [
+    "@types/node",
+    "typescript",
+    "vitest",
+    "tailwindcss",
+    "@tailwindcss/postcss",
+    "postcss"
+  ]
+}

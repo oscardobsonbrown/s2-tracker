@@ -1,0 +1,4 @@
+# Knip ignore patterns
+# The error-to-insight.yml workflow uses markdown bold (**) inside JavaScript template literals
+# which confuses stricter YAML parsers. It's valid YAML for GitHub Actions.
+.github/workflows/error-to-insight.yml

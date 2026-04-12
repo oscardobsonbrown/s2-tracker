@@ -1,0 +1,14 @@
+{
+  "$schema": "./flaky-tests.schema.json",
+  "description": "List of known flaky tests to be quarantined from regular CI runs",
+  "quarantinePolicy": {
+    "maxRetries": 3,
+    "autoQuarantineThreshold": 5,
+    "maxQuarantineDuration": "30d"
+  },
+  "tests": [],
+  "metadata": {
+    "lastUpdated": "2026-04-03",
+    "totalQuarantined": 0
+  }
+}

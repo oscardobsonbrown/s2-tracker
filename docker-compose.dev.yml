@@ -1,0 +1,48 @@
+services:
+  app:
+    image: node:24-bookworm
+    working_dir: /workspace
+    command: >
+      bash -lc "corepack enable && pnpm install && ./scripts/doppler-run.sh app -- pnpm --filter app dev"
+    environment:
+      DOPPLER_TOKEN_FILE: /run/secrets/doppler/token
+      DOPPLER_PROJECT: ${DOPPLER_PROJECT:-next-ship}
+      DOPPLER_CONFIG_SHARED: ${DOPPLER_CONFIG_SHARED:-dev_shared}
+      DOPPLER_CONFIG_APP: ${DOPPLER_CONFIG_APP:-dev_app}
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/workspace
+      - ${DOPPLER_TOKEN_HOST_PATH:-/tmp/doppler-token}:/run/secrets/doppler/token:ro
+
+  web:
+    image: node:24-bookworm
+    working_dir: /workspace
+    command: >
+      bash -lc "corepack enable && pnpm install && ./scripts/doppler-run.sh web -- pnpm --filter web dev"
+    environment:
+      DOPPLER_TOKEN_FILE: /run/secrets/doppler/token
+      DOPPLER_PROJECT: ${DOPPLER_PROJECT:-next-ship}
+      DOPPLER_CONFIG_SHARED: ${DOPPLER_CONFIG_SHARED:-dev_shared}
+      DOPPLER_CONFIG_WEB: ${DOPPLER_CONFIG_WEB:-dev_web}
+    ports:
+      - "3001:3001"
+    volumes:
+      - .:/workspace
+      - ${DOPPLER_TOKEN_HOST_PATH:-/tmp/doppler-token}:/run/secrets/doppler/token:ro
+
+  api:
+    image: node:24-bookworm
+    working_dir: /workspace
+    command: >
+      bash -lc "corepack enable && pnpm install && ./scripts/doppler-run.sh api -- pnpm --filter api dev"
+    environment:
+      DOPPLER_TOKEN_FILE: /run/secrets/doppler/token
+      DOPPLER_PROJECT: ${DOPPLER_PROJECT:-next-ship}
+      DOPPLER_CONFIG_SHARED: ${DOPPLER_CONFIG_SHARED:-dev_shared}
+      DOPPLER_CONFIG_API: ${DOPPLER_CONFIG_API:-dev_api}
+    ports:
+      - "3002:3002"
+    volumes:
+      - .:/workspace
+      - ${DOPPLER_TOKEN_HOST_PATH:-/tmp/doppler-token}:/run/secrets/doppler/token:ro

@@ -1,0 +1,34 @@
+#!/bin/sh
+# Pre-commit hook for next-ship
+# 1. Lint staged files with Biome
+# 2. Check for large files
+
+echo "🔍 Running pre-commit checks..."
+
+# Run lint-staged for Biome linting/formatting
+npx lint-staged
+
+# Check for large files (>10MB)
+echo "📦 Checking for large files..."
+MAX_BYTES=10485760
+LARGE_FILES=$(
+  git diff --cached --name-only --diff-filter=ACM | while IFS= read -r file; do
+    [ -f "$file" ] || continue
+    size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null || echo 0)
+    if [ "$size" -gt "$MAX_BYTES" ]; then
+      size_mb=$(awk "BEGIN { printf \"%.2f\", $size / 1048576 }")
+      echo "$file (${size_mb} MB)"
+    fi
+  done
+)
+
+if [ -n "$LARGE_FILES" ]; then
+    echo "❌ Error: Large files detected (>10MB):"
+    echo "$LARGE_FILES"
+    echo ""
+    echo "Consider using Git LFS for large files:"
+    echo "  git lfs track '*.extension'"
+    exit 1
+fi
+
+echo "✅ Pre-commit checks passed!"

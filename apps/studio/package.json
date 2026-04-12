@@ -1,0 +1,12 @@
+{
+  "name": "studio",
+  "version": "0.4.5",
+  "scripts": {
+    "dev": "cd ../../packages/database && pnpm exec drizzle-kit studio --port 3005",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "devDependencies": {
+    "@repo/database": "workspace:*"
+  }
+}

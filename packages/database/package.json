@@ -1,0 +1,38 @@
+{
+  "name": "@repo/database",
+  "version": "0.4.5",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "scripts": {
+    "analyze": "drizzle-kit generate",
+    "build": "drizzle-kit generate",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:seed": "tsx src/seed.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ephemeral": "tsx scripts/ephemeral-test.ts",
+    "clean": "git clean -xdf .cache .turbo dist node_modules drizzle",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "@t3-oss/env-nextjs": "^0.13.8",
+    "drizzle-orm": "^0.45.2",
+    "server-only": "^0.0.1",
+    "ws": "^8.18.3",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@repo/testing": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "24.10.1",
+    "@types/ws": "^8.18.1",
+    "drizzle-kit": "^0.31.10",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.15"
+  }
+}

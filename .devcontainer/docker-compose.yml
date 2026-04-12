@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/typescript-node:24
+    volumes:
+      - ..:/workspaces/next-ship:cached
+      - next-ship-node-modules:/workspaces/next-ship/node_modules
+    environment:
+      - DATABASE_URL=YOUR_DATABASE_URL_HERE
+      - REDIS_URL=redis://redis:6379
+    command: sleep infinity
+    networks:
+      - next-ship-network
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=dev
+      - POSTGRES_DB=postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - next-ship-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - next-ship-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
+  redis-data:
+  next-ship-node-modules:
+
+networks:
+  next-ship-network:
+    driver: bridge
