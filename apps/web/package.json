@@ -45,6 +45,6 @@
     "@types/react-dom": "19.2.3",
     "agentation": "^3.0.2",
     "tailwindcss": "^4.1.17",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.2"
   }
 }
