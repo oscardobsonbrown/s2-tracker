@@ -9,14 +9,14 @@ const userSearchLogger = logger.child({
   action: "searchUsers",
 });
 
-type ClerkUserSummary = {
+interface ClerkUserSummary {
   emailAddresses?: Array<{ emailAddress?: string | null }>;
   firstName?: string | null;
   id: string;
   imageUrl?: string;
   lastName?: string | null;
   username?: string | null;
-};
+}
 
 const getName = (user: ClerkUserSummary): string | undefined => {
   let name = user.firstName ?? undefined;

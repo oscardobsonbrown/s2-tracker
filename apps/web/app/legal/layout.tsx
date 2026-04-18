@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
-type LegalLayoutProps = {
+interface LegalLayoutProps {
   children: ReactNode;
-};
+}
 
 const LegalLayout = ({ children }: LegalLayoutProps) => <>{children}</>;
 

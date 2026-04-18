@@ -33,15 +33,15 @@
     "dev:api:doppler": "./scripts/doppler-run.sh api -- pnpm --filter api dev",
     "dev:compose:doppler": "docker compose -f docker-compose.dev.yml up --build",
     "doppler:bootstrap": "./scripts/doppler-bootstrap.sh",
-    "check": "npx ultracite@latest check",
+    "check": "ultracite check",
     "dead-code": "knip --no-exit-code",
     "duplicate-code": "jscpd --min-lines 20 --min-tokens 80 --threshold 100 --reporters console --ignore \"**/node_modules/**,**/.next/**,**/coverage/**,**/dist/**,**/__tests__/**\" \"apps\" \"packages\"",
-    "fix": "npx ultracite@latest fix",
-    "format": "npx ultracite@latest fix",
-    "lint": "npx ultracite@latest check",
+    "fix": "ultracite fix",
+    "format": "ultracite fix",
+    "lint": "ultracite check",
     "biome:check": "biome check --write .",
     "biome:ci": "biome ci .",
-    "test": "pnpm --filter @repo/testing build && turbo test",
+    "test": "pnpm --filter @repo/testing build && turbo test --filter='./apps/*' --filter='./packages/*'",
     "analyze": "turbo analyze",
     "translate": "turbo translate",
     "boundaries": "turbo boundaries",
@@ -80,7 +80,7 @@
   },
   "devDependencies": {
     "@auto-it/git-tag": "^11.3.6",
-    "@biomejs/biome": "2.4.11",
+    "@biomejs/biome": "2.4.12",
     "@playwright/test": "^1.59.1",
     "@repo/typescript-config": "workspace:*",
     "@turbo/gen": "^2.6.3",
@@ -92,7 +92,7 @@
     "tsup": "^8.5.1",
     "turbo": "^2.9.3",
     "typescript": "^6.0.2",
-    "ultracite": "6.3.9",
+    "ultracite": "7.6.0",
     "vitest": "^4.0.15"
   },
   "engines": {
@@ -100,7 +100,7 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,jsonc,css,md,mdx}": [
-      "npx ultracite@latest fix"
+      "ultracite fix"
     ]
   },
   "packageManager": "pnpm@10.24.0",

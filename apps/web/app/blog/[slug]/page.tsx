@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 
-type BlogPostProperties = {
+interface BlogPostProperties {
   readonly params: Promise<{
     slug: string;
   }>;
-};
+}
 
 export const generateMetadata = async ({
   params,

@@ -3,9 +3,9 @@
 import { useState } from "react";
 import type { Dictionary } from "@/lib/dictionary";
 
-type ZeroConfigProps = {
+interface ZeroConfigProps {
   dictionary: Dictionary;
-};
+}
 
 type TabKey = "lint" | "auth" | "email" | "analytics" | "payments" | "security";
 

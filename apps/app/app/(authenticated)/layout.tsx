@@ -6,9 +6,9 @@ import type { ReactNode } from "react";
 import { NotificationsProvider } from "./components/notifications-provider";
 import { GlobalSidebar } from "./components/sidebar";
 
-type AppLayoutProperties = {
+interface AppLayoutProperties {
   readonly children: ReactNode;
-};
+}
 
 const layoutLogger = logger.child({
   app: "app",

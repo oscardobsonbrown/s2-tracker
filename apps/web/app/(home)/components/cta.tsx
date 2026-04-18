@@ -4,7 +4,7 @@ import { cn } from "@repo/design-system/lib/utils";
 import { Check, Copy } from "lucide-react";
 import { useState } from "react";
 
-type CtaProps = {
+interface CtaProps {
   dictionary: {
     cta: {
       title: string;
@@ -13,7 +13,7 @@ type CtaProps = {
       copyCommand: string;
     };
   };
-};
+}
 
 export function Cta({ dictionary }: CtaProps) {
   const [copied, setCopied] = useState(false);

@@ -7,13 +7,13 @@ import { env } from "@/env";
 // that causes exported types to resolve to 'never'
 interface LegalPost {
   _slug: string;
-  _title: string;
-  description?: string;
   _sys: {
     id: string;
     slug: string;
     title: string;
   };
+  _title: string;
+  description?: string;
 }
 
 interface LegalPagesData {

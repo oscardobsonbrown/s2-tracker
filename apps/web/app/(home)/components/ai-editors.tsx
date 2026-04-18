@@ -1,8 +1,8 @@
 import type { Dictionary } from "@/lib/dictionary";
 
-type AIEditorsProps = {
+interface AIEditorsProps {
   dictionary: Dictionary;
-};
+}
 
 export const AIEditors = ({ dictionary }: AIEditorsProps) => {
   const icons = [
