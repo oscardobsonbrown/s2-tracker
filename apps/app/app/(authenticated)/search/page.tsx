@@ -1,6 +1,6 @@
-import { auth } from "@repo/auth/server";
 import { database, ilike, pages } from "@repo/database";
-import { notFound, redirect } from "next/navigation";
+import { logger } from "@repo/observability/logger.server";
+import { redirect } from "next/navigation";
 import { Header } from "../components/header";
 
 type SearchPageProperties = {
@@ -8,6 +8,11 @@ type SearchPageProperties = {
     q: string;
   }>;
 };
+
+const searchLogger = logger.child({
+  app: "app",
+  page: "/search",
+});
 
 export const generateMetadata = async ({
   searchParams,
@@ -22,19 +27,24 @@ export const generateMetadata = async ({
 
 const SearchPage = async ({ searchParams }: SearchPageProperties) => {
   const { q } = await searchParams;
+
+  if (!q) {
+    searchLogger.info("Search page redirected because query was empty");
+    redirect("/");
+  }
+
   const pagesData = await database
     .select()
     .from(pages)
     .where(ilike(pages.name, `%${q}%`));
-  const { orgId } = await auth();
 
-  if (!orgId) {
-    notFound();
-  }
-
-  if (!q) {
-    redirect("/");
-  }
+  searchLogger.info(
+    {
+      queryLength: q.length,
+      resultCount: pagesData.length,
+    },
+    "Search results loaded"
+  );
 
   return (
     <>

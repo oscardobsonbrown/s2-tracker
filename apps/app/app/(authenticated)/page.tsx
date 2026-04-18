@@ -1,7 +1,6 @@
-import { auth } from "@repo/auth/server";
 import { database, pages } from "@repo/database";
+import { logger } from "@repo/observability/logger.server";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { Header } from "./components/header";
 
 const title = "Acme Inc";
@@ -12,13 +11,20 @@ export const metadata: Metadata = {
   description,
 };
 
+const dashboardLogger = logger.child({
+  app: "app",
+  page: "/",
+});
+
 const App = async () => {
   const pagesData = await database.select().from(pages);
-  const { orgId } = await auth();
 
-  if (!orgId) {
-    notFound();
-  }
+  dashboardLogger.info(
+    {
+      pageCount: pagesData.length,
+    },
+    "Dashboard data loaded"
+  );
 
   return (
     <>

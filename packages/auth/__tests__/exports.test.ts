@@ -7,8 +7,6 @@ vi.mock("server-only", () => ({}));
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn().mockResolvedValue({
     userId: "user_test_123",
-    orgId: "org_test_456",
-    orgRole: "org:admin",
   }),
   currentUser: vi.fn().mockResolvedValue({
     id: "user_test_123",

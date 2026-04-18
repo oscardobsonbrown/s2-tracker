@@ -5,7 +5,6 @@ vi.mock("@repo/analytics/server", () => ({
   analytics: {
     identify: vi.fn(),
     capture: vi.fn(),
-    groupIdentify: vi.fn(),
     shutdown: vi.fn().mockResolvedValue(undefined),
   },
 }));

@@ -10,6 +10,7 @@ Runbooks are operational guides for common tasks, troubleshooting, and incident 
 |---------|---------|-----------------|
 | [01 - Quick Start](./01-quick-start.md) | Initial project setup | 15 minutes |
 | [02 - Debugging](./02-debugging.md) | Common issues & solutions | Varies |
+| [03 - Travel Integrations](./03-travel-integrations.md) | Flight and weather setup | 10 minutes |
 
 ## When to Use Runbooks
 
