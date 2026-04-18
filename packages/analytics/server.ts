@@ -1,7 +1,10 @@
 import "server-only";
 import { PostHog } from "posthog-node";
 
-type AnalyticsClient = Pick<PostHog, "capture" | "identify" | "shutdown">;
+type AnalyticsClient = Pick<
+  PostHog,
+  "capture" | "identify" | "isFeatureEnabled" | "shutdown"
+>;
 
 const runtimeEnv = (
   globalThis as typeof globalThis & {
@@ -23,6 +26,7 @@ export const analytics: AnalyticsClient = postHogKey
   : {
       capture: () => undefined,
       identify: () => undefined,
+      isFeatureEnabled: async () => undefined,
       shutdown: async () => undefined,
     };
 
