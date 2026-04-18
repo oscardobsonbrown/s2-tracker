@@ -1,8 +1,7 @@
 "use client";
 
-import { OrganizationSwitcher, UserButton } from "@repo/auth/client";
+import { UserButton } from "@repo/auth/client";
 import { ModeToggle } from "@repo/design-system/components/mode-toggle";
-import { Button } from "@repo/design-system/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
@@ -46,6 +45,7 @@ import {
   MapIcon,
   MoreHorizontalIcon,
   PieChartIcon,
+  PlaneIcon,
   SendIcon,
   Settings2Icon,
   ShareIcon,
@@ -155,6 +155,11 @@ const data = {
   ],
   navSecondary: [
     {
+      title: "Travel",
+      url: "/travel",
+      icon: PlaneIcon,
+    },
+    {
       title: "Webhooks",
       url: "/webhooks",
       icon: AnchorIcon,
@@ -198,17 +203,16 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
         <SidebarHeader>
           <SidebarMenu>
             <SidebarMenuItem>
-              <div
-                className={cn(
-                  "h-[36px] overflow-hidden transition-all [&>div]:w-full",
-                  sidebar.open ? "" : "-mx-1"
-                )}
+              <SidebarMenuButton
+                className={cn(sidebar.open ? "" : "justify-center")}
+                render={<Link href="/" />}
+                size="lg"
               >
-                <OrganizationSwitcher
-                  afterSelectOrganizationUrl="/"
-                  hidePersonal
-                />
-              </div>
+                <div className="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
+                  <PlaneIcon className="size-4" />
+                </div>
+                <span className="font-semibold">S2 Tracker</span>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
@@ -220,28 +224,31 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
               {data.navMain.map((item) => (
                 <Collapsible defaultOpen={item.isActive} key={item.title}>
                   <SidebarMenuItem>
-                    <SidebarMenuButton tooltip={item.title}>
-                      <Link href={item.url}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
+                    <SidebarMenuButton
+                      render={<Link href={item.url} />}
+                      tooltip={item.title}
+                    >
+                      <item.icon />
+                      <span>{item.title}</span>
                     </SidebarMenuButton>
                     {item.items?.length ? (
                       <>
-                        <CollapsibleTrigger>
-                          <SidebarMenuAction className="data-[state=open]:rotate-90">
-                            <ChevronRightIcon />
-                            <span className="sr-only">Toggle</span>
-                          </SidebarMenuAction>
-                        </CollapsibleTrigger>
+                        <CollapsibleTrigger
+                          render={
+                            <SidebarMenuAction className="data-[panel-open]:rotate-90 data-[state=open]:rotate-90">
+                              <ChevronRightIcon />
+                              <span className="sr-only">Toggle</span>
+                            </SidebarMenuAction>
+                          }
+                        />
                         <CollapsibleContent>
                           <SidebarMenuSub>
                             {item.items?.map((subItem) => (
                               <SidebarMenuSubItem key={subItem.title}>
-                                <SidebarMenuSubButton>
-                                  <Link href={subItem.url}>
-                                    <span>{subItem.title}</span>
-                                  </Link>
+                                <SidebarMenuSubButton
+                                  render={<Link href={subItem.url} />}
+                                >
+                                  <span>{subItem.title}</span>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
                             ))}
@@ -259,19 +266,19 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
             <SidebarMenu>
               {data.projects.map((item) => (
                 <SidebarMenuItem key={item.name}>
-                  <SidebarMenuButton>
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{item.name}</span>
-                    </Link>
+                  <SidebarMenuButton render={<Link href={item.url} />}>
+                    <item.icon />
+                    <span>{item.name}</span>
                   </SidebarMenuButton>
                   <DropdownMenu>
-                    <DropdownMenuTrigger>
-                      <SidebarMenuAction showOnHover>
-                        <MoreHorizontalIcon />
-                        <span className="sr-only">More</span>
-                      </SidebarMenuAction>
-                    </DropdownMenuTrigger>
+                    <DropdownMenuTrigger
+                      render={
+                        <SidebarMenuAction showOnHover>
+                          <MoreHorizontalIcon />
+                          <span className="sr-only">More</span>
+                        </SidebarMenuAction>
+                      }
+                    />
                     <DropdownMenuContent
                       align="end"
                       className="w-48"
@@ -307,11 +314,9 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
               <SidebarMenu>
                 {data.navSecondary.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton>
-                      <Link href={item.url}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
+                    <SidebarMenuButton render={<Link href={item.url} />}>
+                      <item.icon />
+                      <span>{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -334,11 +339,9 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
               />
               <div className="flex shrink-0 items-center gap-px">
                 <ModeToggle />
-                <Button className="shrink-0" size="icon" variant="ghost">
-                  <div className="h-4 w-4">
-                    <NotificationsTrigger />
-                  </div>
-                </Button>
+                <div className="flex size-9 shrink-0 items-center justify-center">
+                  <NotificationsTrigger />
+                </div>
               </div>
             </SidebarMenuItem>
           </SidebarMenu>

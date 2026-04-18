@@ -1,8 +1,6 @@
 import { analytics } from "@repo/analytics/server";
 import type {
   DeletedObjectJSON,
-  OrganizationJSON,
-  OrganizationMembershipJSON,
   UserJSON,
   WebhookEvent,
 } from "@repo/auth/server";
@@ -72,78 +70,6 @@ const handleUserDeleted = (data: DeletedObjectJSON) => {
   return new Response("User deleted", { status: 201 });
 };
 
-const handleOrganizationCreated = (data: OrganizationJSON) => {
-  analytics.groupIdentify({
-    groupKey: data.id,
-    groupType: "company",
-    distinctId: data.created_by,
-    properties: {
-      name: data.name,
-      avatar: data.image_url,
-    },
-  });
-
-  if (data.created_by) {
-    analytics.capture({
-      event: "Organization Created",
-      distinctId: data.created_by,
-    });
-  }
-
-  return new Response("Organization created", { status: 201 });
-};
-
-const handleOrganizationUpdated = (data: OrganizationJSON) => {
-  analytics.groupIdentify({
-    groupKey: data.id,
-    groupType: "company",
-    distinctId: data.created_by,
-    properties: {
-      name: data.name,
-      avatar: data.image_url,
-    },
-  });
-
-  if (data.created_by) {
-    analytics.capture({
-      event: "Organization Updated",
-      distinctId: data.created_by,
-    });
-  }
-
-  return new Response("Organization updated", { status: 201 });
-};
-
-const handleOrganizationMembershipCreated = (
-  data: OrganizationMembershipJSON
-) => {
-  analytics.groupIdentify({
-    groupKey: data.organization.id,
-    groupType: "company",
-    distinctId: data.public_user_data.user_id,
-  });
-
-  analytics.capture({
-    event: "Organization Member Created",
-    distinctId: data.public_user_data.user_id,
-  });
-
-  return new Response("Organization membership created", { status: 201 });
-};
-
-const handleOrganizationMembershipDeleted = (
-  data: OrganizationMembershipJSON
-) => {
-  // Need to unlink the user from the group
-
-  analytics.capture({
-    event: "Organization Member Deleted",
-    distinctId: data.public_user_data.user_id,
-  });
-
-  return new Response("Organization membership deleted", { status: 201 });
-};
-
 export const POST = async (request: Request): Promise<Response> => {
   if (!env.CLERK_WEBHOOK_SECRET) {
     return NextResponse.json({ message: "Not configured", ok: false });
@@ -204,22 +130,6 @@ export const POST = async (request: Request): Promise<Response> => {
     }
     case "user.deleted": {
       response = handleUserDeleted(event.data);
-      break;
-    }
-    case "organization.created": {
-      response = handleOrganizationCreated(event.data);
-      break;
-    }
-    case "organization.updated": {
-      response = handleOrganizationUpdated(event.data);
-      break;
-    }
-    case "organizationMembership.created": {
-      response = handleOrganizationMembershipCreated(event.data);
-      break;
-    }
-    case "organizationMembership.deleted": {
-      response = handleOrganizationMembershipDeleted(event.data);
       break;
     }
     default: {

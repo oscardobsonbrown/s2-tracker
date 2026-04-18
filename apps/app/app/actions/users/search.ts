@@ -1,19 +1,31 @@
 "use server";
 
-import {
-  auth,
-  clerkClient,
-  type OrganizationMembership,
-} from "@repo/auth/server";
+import { auth, clerkClient } from "@repo/auth/server";
+import { logger } from "@repo/observability/logger.server";
 import Fuse from "fuse.js";
 
-const getName = (user: OrganizationMembership): string | undefined => {
-  let name = user.publicUserData?.firstName;
+const userSearchLogger = logger.child({
+  app: "app",
+  action: "searchUsers",
+});
 
-  if (name && user.publicUserData?.lastName) {
-    name = `${name} ${user.publicUserData.lastName}`;
+type ClerkUserSummary = {
+  emailAddresses?: Array<{ emailAddress?: string | null }>;
+  firstName?: string | null;
+  id: string;
+  imageUrl?: string;
+  lastName?: string | null;
+  username?: string | null;
+};
+
+const getName = (user: ClerkUserSummary): string | undefined => {
+  let name = user.firstName ?? undefined;
+
+  if (name && user.lastName) {
+    name = `${name} ${user.lastName}`;
   } else if (!name) {
-    name = user.publicUserData?.identifier;
+    name =
+      user.username ?? user.emailAddresses?.at(0)?.emailAddress ?? undefined;
   }
 
   return name;
@@ -29,24 +41,29 @@ export const searchUsers = async (
       error: unknown;
     }
 > => {
-  try {
-    const { orgId } = await auth();
+  userSearchLogger.info(
+    { queryLength: query.length },
+    "User search action started"
+  );
 
-    if (!orgId) {
+  try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      userSearchLogger.warn("User search action rejected without a user");
       throw new Error("Not logged in");
     }
 
     const clerk = await clerkClient();
 
-    const members = await clerk.organizations.getOrganizationMembershipList({
-      organizationId: orgId,
+    const usersList = await clerk.users.getUserList({
       limit: 100,
     });
 
-    const users = members.data.map((user) => ({
+    const users = usersList.data.map((user) => ({
       id: user.id,
-      name: getName(user) ?? user.publicUserData?.identifier,
-      imageUrl: user.publicUserData?.imageUrl,
+      name: getName(user),
+      imageUrl: user.imageUrl,
     }));
 
     const fuse = new Fuse(users, {
@@ -58,8 +75,17 @@ export const searchUsers = async (
     const results = fuse.search(query);
     const data = results.map((result) => result.item.id);
 
+    userSearchLogger.info(
+      {
+        userCount: usersList.data.length,
+        resultCount: data.length,
+      },
+      "User search action completed"
+    );
+
     return { data };
   } catch (error) {
+    userSearchLogger.error({ err: error }, "User search action failed");
     return { error };
   }
 };
