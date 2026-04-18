@@ -1,8 +1,8 @@
 import type { Dictionary } from "@/lib/dictionary";
 
-type AIAgentsProps = {
+interface AIAgentsProps {
   dictionary: Dictionary;
-};
+}
 
 export const AIAgents = ({ dictionary }: AIAgentsProps) => {
   const icons = [

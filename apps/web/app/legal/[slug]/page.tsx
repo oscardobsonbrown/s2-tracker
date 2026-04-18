@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 
-type LegalPageProperties = {
+interface LegalPageProperties {
   readonly params: Promise<{
     slug: string;
   }>;
-};
+}
 
 export const generateMetadata = async ({
   params,

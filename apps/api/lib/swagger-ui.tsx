@@ -8,9 +8,9 @@ import "swagger-ui-react/swagger-ui.css";
  * Renders OpenAPI spec as interactive documentation
  */
 
-type SwaggerUIProps = {
+interface SwaggerUIProps {
   spec: Record<string, unknown>;
-};
+}
 
 export function SwaggerUI({ spec }: SwaggerUIProps) {
   return (

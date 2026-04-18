@@ -1,8 +1,8 @@
 import type { Dictionary } from "@/lib/dictionary";
 
-type HeroProps = {
+interface HeroProps {
   dictionary: Dictionary;
-};
+}
 
 export const Hero = ({ dictionary }: HeroProps) => {
   return (
@@ -56,7 +56,7 @@ export const Hero = ({ dictionary }: HeroProps) => {
           </div>
 
           {/* Web page screenshot - positioned over the landscape image */}
-          <div className="-bottom-[15%] -translate-x-1/2 absolute left-1/2 mx-auto w-[964px] max-w-[90%] overflow-hidden rounded-[10px] shadow-2xl">
+          <div className="absolute -bottom-[15%] left-1/2 mx-auto w-[964px] max-w-[90%] -translate-x-1/2 overflow-hidden rounded-[10px] shadow-2xl">
             <div className="aspect-[964/590] w-full bg-gradient-to-br from-gray-200 to-gray-400" />
           </div>
         </div>

@@ -64,7 +64,7 @@ const healthEvlogRouteHandler = withEvlog((req: Request, { log }) => {
       evlog: "enabled",
       timestamp: new Date().toISOString(),
     });
-  } catch (_error) {
+  } catch {
     // Structured error with context
     throw createError({
       status: 500,

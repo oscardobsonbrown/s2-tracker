@@ -3,11 +3,11 @@ import { logger } from "@repo/observability/logger.server";
 import { redirect } from "next/navigation";
 import { Header } from "../components/header";
 
-type SearchPageProperties = {
+interface SearchPageProperties {
   searchParams: Promise<{
     q: string;
   }>;
-};
+}
 
 const searchLogger = logger.child({
   app: "app",

@@ -3,7 +3,6 @@
   "tags": ["infra"],
   "tasks": {
     "test": {
-      "dependsOn": ["db:push"],
       "cache": false
     },
     "db:push": {

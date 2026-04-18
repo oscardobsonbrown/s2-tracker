@@ -1,21 +1,19 @@
-export type WeatherLocationInput = {
-  location?: string;
+export interface WeatherLocationInput {
   latitude?: number;
+  location?: string;
   longitude?: number;
-};
+}
 
-export type ResolvedWeatherLocation = {
-  name: string;
+export interface ResolvedWeatherLocation {
+  admin1?: string;
+  country?: string;
   latitude: number;
   longitude: number;
-  country?: string;
-  admin1?: string;
+  name: string;
   timezone?: string;
-};
+}
 
-export type SurfConditionsResponse = {
-  kind: "surf";
-  location: ResolvedWeatherLocation;
+export interface SurfConditionsResponse {
   current: {
     time: string;
     waveHeight: number | null;
@@ -35,20 +33,20 @@ export type SurfConditionsResponse = {
     windDirection: number | null;
     windGusts: number | null;
   };
-  units: Record<string, string>;
+  kind: "surf";
+  location: ResolvedWeatherLocation;
   source: "Open-Meteo Marine API and Forecast API";
-};
+  units: Record<string, string>;
+}
 
-export type SnowDay = {
+export interface SnowDay {
   date: string;
   snowfall: number | null;
-  temperatureMin: number | null;
   temperatureMax: number | null;
-};
+  temperatureMin: number | null;
+}
 
-export type SnowConditionsResponse = {
-  kind: "snow";
-  location: ResolvedWeatherLocation;
+export interface SnowConditionsResponse {
   current: {
     time: string;
     temperature: number | null;
@@ -58,18 +56,20 @@ export type SnowConditionsResponse = {
     windDirection: number | null;
   };
   daily: SnowDay[];
-  units: Record<string, string>;
+  kind: "snow";
+  location: ResolvedWeatherLocation;
   source: "Open-Meteo Forecast API";
-};
+  units: Record<string, string>;
+}
 
 export type WeatherErrorCode =
   | "VALIDATION_ERROR"
   | "LOCATION_NOT_FOUND"
   | "PROVIDER_ERROR";
 
-export type WeatherApiError = {
+export interface WeatherApiError {
   error: {
     code: WeatherErrorCode;
     message: string;
   };
-};
+}

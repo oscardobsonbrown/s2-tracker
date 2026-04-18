@@ -1,35 +1,35 @@
 export type TripType = "one-way" | "round-trip";
 
-export type FlightSearchInput = {
-  tripType: TripType;
-  origin: string;
-  destination: string;
-  departureDate: string;
-  returnDate?: string;
+export interface FlightSearchInput {
   adults: number;
   currency: string;
-};
+  departureDate: string;
+  destination: string;
+  origin: string;
+  returnDate?: string;
+  tripType: TripType;
+}
 
-export type FlightResult = {
-  rank: number;
-  isBest: boolean;
-  name: string;
-  departure: string;
+export interface FlightResult {
   arrival: string;
   arrivalTimeAhead: string;
-  duration: string;
-  stops: number | "Unknown";
   delay: string | null;
+  departure: string;
+  duration: string;
+  isBest: boolean;
+  name: string;
   price: string;
-};
+  rank: number;
+  stops: number | "Unknown";
+}
 
-export type FlightSearchResponse = {
+export interface FlightSearchResponse {
+  flights: FlightResult[];
+  priceTrend: "low" | "typical" | "high" | null;
   query: FlightSearchInput & {
     cabin: "economy";
   };
-  priceTrend: "low" | "typical" | "high" | null;
-  flights: FlightResult[];
-};
+}
 
 export type FlightErrorCode =
   | "VALIDATION_ERROR"
@@ -37,11 +37,11 @@ export type FlightErrorCode =
   | "TIMEOUT"
   | "PYTHON_UNAVAILABLE";
 
-export type FlightSearchError = {
+export interface FlightSearchError {
   error: {
     code: FlightErrorCode;
     message: string;
   };
-};
+}
 
 export type FlightApiResponse = FlightSearchResponse | FlightSearchError;

@@ -21,15 +21,15 @@ const basehub = basehubClient({
  * Explicit Type Definitions (workaround for basehub v9.5.3 type inference bug)
  * -----------------------------------------------------------------------------------------------*/
 
-type ImageFragment = {
-  url: string;
-  width: number;
-  height: number;
+interface ImageFragment {
   alt: string;
   blurDataURL: string;
-};
+  height: number;
+  url: string;
+  width: number;
+}
 
-type PostMeta = {
+interface PostMeta {
   _slug: string;
   _title: string;
   authors: {
@@ -43,32 +43,32 @@ type PostMeta = {
   date: string;
   description: string;
   image: ImageFragment;
-};
+}
 
-type PostBody = {
-  plainText: string;
+interface PostBody {
   json: {
     content: unknown;
     toc: unknown;
   };
+  plainText: string;
   readingTime: number;
-};
+}
 
 type Post = PostMeta & {
   body: PostBody;
 };
 
-type LegalPostMeta = {
+interface LegalPostMeta {
   _slug: string;
   _title: string;
   description: string;
-};
+}
 
 type LegalPost = LegalPostMeta & {
   body: PostBody;
 };
 
-export type { PostMeta, Post, LegalPostMeta, LegalPost };
+export type { LegalPost, LegalPostMeta, Post, PostMeta };
 
 /* -------------------------------------------------------------------------------------------------
  * Common Fragments

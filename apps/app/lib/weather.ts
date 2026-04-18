@@ -9,7 +9,9 @@ import type {
   WeatherLocationInput,
 } from "@/lib/weather-types";
 
-type OpenMeteoGeocodingResponse = {
+interface OpenMeteoGeocodingResponse {
+  error?: boolean;
+  reason?: string;
   results?: Array<{
     name: string;
     latitude: number;
@@ -18,12 +20,9 @@ type OpenMeteoGeocodingResponse = {
     admin1?: string;
     timezone?: string;
   }>;
-  error?: boolean;
-  reason?: string;
-};
+}
 
-type OpenMeteoSurfMarineResponse = {
-  current_units?: Record<string, string>;
+interface OpenMeteoSurfMarineResponse {
   current?: {
     time?: string;
     wave_height?: number | null;
@@ -40,13 +39,12 @@ type OpenMeteoSurfMarineResponse = {
     ocean_current_velocity?: number | null;
     ocean_current_direction?: number | null;
   };
+  current_units?: Record<string, string>;
   error?: boolean;
   reason?: string;
-};
+}
 
-type OpenMeteoForecastResponse = {
-  current_units?: Record<string, string>;
-  daily_units?: Record<string, string>;
+interface OpenMeteoForecastResponse {
   current?: {
     time?: string;
     temperature_2m?: number | null;
@@ -56,15 +54,17 @@ type OpenMeteoForecastResponse = {
     wind_direction_10m?: number | null;
     wind_gusts_10m?: number | null;
   };
+  current_units?: Record<string, string>;
   daily?: {
     time?: string[];
     snowfall_sum?: Array<number | null>;
     temperature_2m_max?: Array<number | null>;
     temperature_2m_min?: Array<number | null>;
   };
+  daily_units?: Record<string, string>;
   error?: boolean;
   reason?: string;
-};
+}
 
 const GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search";
 const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";

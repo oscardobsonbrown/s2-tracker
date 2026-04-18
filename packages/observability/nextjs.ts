@@ -1,15 +1,15 @@
 import { scrubLogPayload } from "./scrub";
 
-export type RequestLogger = {
+export interface RequestLogger {
   emit: () => void;
   get: () => Record<string, unknown>;
   set: (payload: Record<string, unknown>) => void;
-};
+}
 
-export type EvlogContext = {
+export interface EvlogContext {
   log: RequestLogger;
   requestId: string;
-};
+}
 
 const createRequestLogger = (): RequestLogger => {
   const context: Record<string, unknown> = {};

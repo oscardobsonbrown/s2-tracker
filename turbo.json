@@ -53,7 +53,7 @@
   },
   "tasks": {
     "build": {
-      "dependsOn": ["^build", "test"],
+      "dependsOn": ["^build"],
       "outputs": [
         ".next/**",
         "!.next/cache/**",
@@ -64,11 +64,11 @@
       ]
     },
     "test": {
-      "dependsOn": ["^build", "^test"],
+      "dependsOn": ["^test"],
       "env": ["DATABASE_URL"]
     },
     "//#test": {
-      "dependsOn": ["^build", "^test"],
+      "dependsOn": ["^test"],
       "env": ["DATABASE_URL"]
     },
     "db:push": {

@@ -3,20 +3,20 @@
 import { auth, clerkClient } from "@repo/auth/server";
 import { logger } from "@repo/observability/logger.server";
 
-export type UserInfo = {
+export interface UserInfo {
+  color: string;
   name: string;
   picture: string;
-  color: string;
-};
+}
 
-type ClerkUserSummary = {
+interface ClerkUserSummary {
   emailAddresses?: Array<{ emailAddress?: string | null }>;
   firstName?: string | null;
   id: string;
   imageUrl?: string;
   lastName?: string | null;
   username?: string | null;
-};
+}
 
 const getName = (user: ClerkUserSummary): string | undefined => {
   let name = user.firstName ?? undefined;

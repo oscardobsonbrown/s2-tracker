@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+const nonEmptyTextPattern = /.+/;
+
 test.describe("Web Homepage", () => {
   test("homepage loads successfully", async ({ page }) => {
     const response = await page.goto("http://localhost:3001");
@@ -11,7 +13,7 @@ test.describe("Web Homepage", () => {
     expect(response?.status()).toBe(200);
 
     // Basic smoke test - page should load without errors
-    await expect(page).toHaveTitle(/.+/);
+    await expect(page).toHaveTitle(nonEmptyTextPattern);
 
     // Check that the page has content
     const body = page.locator("body");
@@ -27,7 +29,7 @@ test.describe("Web Homepage", () => {
 
     // Check for basic HTML structure
     const html = page.locator("html");
-    await expect(html).toHaveAttribute("lang", /.+/);
+    await expect(html).toHaveAttribute("lang", nonEmptyTextPattern);
 
     // Body should be visible
     const body = page.locator("body");

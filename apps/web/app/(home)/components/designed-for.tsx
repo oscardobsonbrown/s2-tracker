@@ -1,11 +1,11 @@
-type DesignedForProps = {
+interface DesignedForProps {
   dictionary: {
     designedFor: {
       title: string;
       description: string;
     };
   };
-};
+}
 
 export function DesignedFor({ dictionary }: DesignedForProps) {
   return (

@@ -58,7 +58,7 @@ pnpm install
 # Set up environment variables
 # Copy .env.example files to .env in each app/package and fill in your API keys
 
-# Run database migrations
+# Push the current database schema when you intentionally update the database
 pnpm --filter @repo/database db:push
 
 # Start development
@@ -89,14 +89,23 @@ NEXT_PUBLIC_POSTHOG_KEY=phc_...
 **apps/api/.env:**
 ```
 DATABASE_URL=postgresql://...
+RESEND_FROM=hello@example.com
+RESEND_TOKEN=re_...
+POLAR_ACCESS_TOKEN=polar_...
+
+# Optional for webhook features
 CLERK_SECRET_KEY=sk_test_...
 CLERK_WEBHOOK_SECRET=whsec_...
-POLAR_ACCESS_TOKEN=polar_...
 POLAR_WEBHOOK_SECRET=whsec_...
-RESEND_TOKEN=re_...
 
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_WEB_URL=http://localhost:3001
+NEXT_PUBLIC_POSTHOG_KEY=phc_...
+NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/
 ```
 
 See individual `.env.example` files for complete lists.
@@ -194,11 +203,17 @@ export const pages = pgTable("pages", {
 });
 ```
 
-Run migrations:
+Run schema commands explicitly:
 ```bash
 pnpm --filter @repo/database db:generate  # Generate migration files
-pnpm --filter @repo/database db:push     # Push to database
+pnpm --filter @repo/database db:push      # Push to database
 pnpm --filter @repo/database db:studio     # Open Drizzle Studio
+```
+
+For database integration tests with an ephemeral Neon branch:
+
+```bash
+pnpm --filter @repo/database test:ephemeral
 ```
 
 ## Components
@@ -258,6 +273,9 @@ After modifying schema:
 2. Run `pnpm --filter @repo/database db:generate`
 3. Run `pnpm --filter @repo/database db:push`
 
+Deploy builds do not push database schema. Apply schema changes intentionally
+before or alongside the release using the database commands above.
+
 ### Adding a New App
 
 1. Create directory in `apps/`
@@ -274,13 +292,47 @@ After modifying schema:
 3. Deploy
 
 The monorepo is configured to deploy all apps independently via Turborepo.
+Vercel deploy builds do not run database schema pushes; run database schema
+commands explicitly when schema changes are part of a release.
+The Vercel app configs use `turbo run build --filter=<app> --only` so deploys
+build only the selected Next.js app and do not run test or tooling package tasks.
 
 ### Environment Variables by App
 
 Each app needs specific environment variables:
 - **Web**: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `NEXT_PUBLIC_POSTHOG_KEY`, etc.
 - **App**: All Clerk variables, PostHog key
-- **API**: Database URL, all service API keys (Polar, Resend, etc.)
+- **API**: Database URL, Resend, Polar, PostHog, and app URL variables.
+
+Required API variables for Vercel:
+
+```env
+DATABASE_URL
+RESEND_FROM
+RESEND_TOKEN
+POLAR_ACCESS_TOKEN
+NEXT_PUBLIC_APP_URL
+NEXT_PUBLIC_WEB_URL
+NEXT_PUBLIC_POSTHOG_KEY
+NEXT_PUBLIC_POSTHOG_HOST
+NEXT_PUBLIC_CLERK_SIGN_IN_URL
+NEXT_PUBLIC_CLERK_SIGN_UP_URL
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL
+```
+
+Optional API variables:
+
+```env
+CLERK_SECRET_KEY
+CLERK_WEBHOOK_SECRET
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+POLAR_WEBHOOK_SECRET
+POLAR_SERVER
+NEXT_PUBLIC_API_URL
+NEXT_PUBLIC_DOCS_URL
+NEXT_PUBLIC_GA_MEASUREMENT_ID
+```
 
 ## Inspired By
 

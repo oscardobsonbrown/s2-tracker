@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "ignoreCommand": "node scripts/skip-ci.js",
+  "buildCommand": "turbo run build --filter=api --only",
   "crons": [
     {
       "path": "/cron/keep-alive",

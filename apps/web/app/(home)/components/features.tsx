@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
-type FeaturesProps = {
+interface FeaturesProps {
   children: ReactNode;
-};
+}
 
 export const Features = ({ children }: FeaturesProps) => (
   <section className="w-full px-4 py-16">

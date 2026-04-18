@@ -4,7 +4,7 @@ import {
 } from "@opentelemetry/exporter-prometheus";
 import { MeterProvider } from "@opentelemetry/sdk-metrics";
 
-type MetricsRegistryState = {
+interface MetricsRegistryState {
   httpRequestDurationSeconds: ReturnType<
     ReturnType<MeterProvider["getMeter"]>["createHistogram"]
   >;
@@ -16,7 +16,7 @@ type MetricsRegistryState = {
   >;
   prometheusReader: PrometheusExporter;
   prometheusSerializer: PrometheusSerializer;
-};
+}
 
 declare global {
   var __nextShipApiMetrics: MetricsRegistryState | undefined;

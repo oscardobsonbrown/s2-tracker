@@ -7,21 +7,21 @@ import type {
   FlightSearchInput,
 } from "@/lib/flight-types";
 
-type ProviderSuccess = {
-  ok: true;
+interface ProviderSuccess {
   data: {
     priceTrend: "low" | "typical" | "high" | null;
     flights: FlightResult[];
   };
-};
+  ok: true;
+}
 
-type ProviderFailure = {
-  ok: false;
+interface ProviderFailure {
   error: {
     code?: FlightErrorCode;
     message?: string;
   };
-};
+  ok: false;
+}
 
 type ProviderEnvelope = ProviderSuccess | ProviderFailure;
 type SettleProviderSearch = (

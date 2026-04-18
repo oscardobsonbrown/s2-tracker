@@ -1,4 +1,4 @@
-type FooterProps = {
+interface FooterProps {
   dictionary: {
     footer: {
       madeWith: string;
@@ -65,7 +65,7 @@ type FooterProps = {
       };
     };
   };
-};
+}
 
 export function Footer({ dictionary }: FooterProps) {
   const { footer } = dictionary;
