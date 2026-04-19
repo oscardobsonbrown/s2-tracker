@@ -383,7 +383,7 @@ export function CobeGlobe({
           );
         })}
       </div>
-      <p className="pointer-events-none absolute right-5 bottom-5 whitespace-nowrap font-normal text-muted-foreground text-xs">
+      <p className="pointer-events-none absolute top-full left-1/2 mt-4 -translate-x-1/2 whitespace-nowrap font-normal text-muted-foreground text-xs">
         Next 24 hour snowfall forecast
       </p>
       <span className="sr-only" id="cobe-globe-instructions">
