@@ -19,7 +19,7 @@ const Home = async () => (
           Fresh snow is rare. Bad timing is optional. Find the mountains about
           to turn on.
         </p>
-        <div className="mt-8 flex w-full flex-wrap items-center justify-center gap-4">
+        <div className="mt-8 flex w-full flex-wrap items-center justify-center gap-4 sm:justify-start">
           <Link
             className="inline-flex h-11 items-center justify-center rounded-full bg-foreground px-5 font-medium text-background text-sm transition-colors hover:bg-foreground/90"
             href="/docs"
