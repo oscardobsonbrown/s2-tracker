@@ -26,7 +26,9 @@ This is **next-ship**, a production-grade Turborepo template for Next.js applica
 - `pnpm check` — Run ultracite check (format + lint)
 - `pnpm fix` — Run ultracite fix (format + lint with auto-fix)
 - `pnpm test` — Run tests
-- `pnpm migrate` — Run Prisma migrations
+- `pnpm migrate` — Apply committed Drizzle migrations
+- `pnpm db:generate` — Generate Drizzle migration files
+- `pnpm db:check` — Check Drizzle migration consistency
 - `pnpm boundaries` — Check monorepo boundaries
 - `pnpm biome:check` — Direct Biome check (if needed)
 - `pnpm biome:ci` — Direct Biome CI check (if needed)
@@ -36,9 +38,11 @@ This is **next-ship**, a production-grade Turborepo template for Next.js applica
 - Key variables: DATABASE_URL, POSTHOG_API_KEY, POLAR_ACCESS_TOKEN, etc.
 
 ### Database
-- Uses Prisma with PostgreSQL
-- Schema defined in `packages/database/prisma/schema.prisma`
-- Studio available at `pnpm studio` (port 5555)
+- Uses Drizzle ORM with PostgreSQL
+- Schema defined in `packages/database/src/schema.ts`
+- Migration files live in `packages/database/drizzle/` and must be committed with schema changes
+- Apply migrations with `pnpm db:migrate`; do not use `db:push` for shared databases
+- Studio available via `pnpm db:studio`
 
 ### Error Tracking
 - PostHog configured for analytics and error tracking
@@ -81,6 +85,7 @@ This is **next-ship**, a production-grade Turborepo template for Next.js applica
 When making changes:
 1. Run `pnpm check` before committing
 2. Ensure tests pass with `pnpm test`
-3. Follow existing patterns in the codebase
-4. Update documentation if changing APIs or setup
-5. Respect monorepo boundaries (check with `pnpm boundaries`)
+3. Generate, review, and apply Drizzle migrations when changing database schema
+4. Follow existing patterns in the codebase
+5. Update documentation if changing APIs or setup
+6. Respect monorepo boundaries (check with `pnpm boundaries`)

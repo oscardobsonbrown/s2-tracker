@@ -58,8 +58,8 @@ pnpm install
 # Set up environment variables
 # Copy .env.example files to .env in each app/package and fill in your API keys
 
-# Push the current database schema when you intentionally update the database
-pnpm --filter @repo/database db:push
+# Apply committed database migrations when you intentionally update the database
+pnpm --filter @repo/database db:migrate
 
 # Start development
 pnpm dev
@@ -203,11 +203,45 @@ export const pages = pgTable("pages", {
 });
 ```
 
-Run schema commands explicitly:
+### Database Migrations
+
+Schema changes are code-first and migration-first.
+
+1. Edit `packages/database/src/schema.ts`.
+2. Generate a migration:
+
+   ```bash
+   pnpm --filter @repo/database db:generate --name add_example_table
+   ```
+
+3. Review the generated SQL in `packages/database/drizzle/`.
+4. Check migration consistency:
+
+   ```bash
+   pnpm --filter @repo/database db:check
+   ```
+
+5. Apply migrations intentionally:
+
+   ```bash
+   pnpm --filter @repo/database db:migrate
+   ```
+
+Do not use `db:push` for shared databases. It bypasses migration history.
+
+Useful database commands:
+
 ```bash
 pnpm --filter @repo/database db:generate  # Generate migration files
-pnpm --filter @repo/database db:push      # Push to database
+pnpm --filter @repo/database db:check     # Check migration consistency
+pnpm --filter @repo/database db:migrate   # Apply pending migrations
 pnpm --filter @repo/database db:studio     # Open Drizzle Studio
+```
+
+Refresh the ski resort dataset from OpenSkiMap:
+
+```bash
+pnpm db:import:ski-resorts
 ```
 
 For database integration tests with an ephemeral Neon branch:
@@ -270,11 +304,13 @@ pnpm bump-ui
 
 After modifying schema:
 1. Edit `packages/database/src/schema.ts`
-2. Run `pnpm --filter @repo/database db:generate`
-3. Run `pnpm --filter @repo/database db:push`
+2. Run `pnpm --filter @repo/database db:generate --name descriptive_migration_name`
+3. Review the generated SQL in `packages/database/drizzle/`
+4. Run `pnpm --filter @repo/database db:check`
+5. Run `pnpm --filter @repo/database db:migrate`
 
-Deploy builds do not push database schema. Apply schema changes intentionally
-before or alongside the release using the database commands above.
+Deploy builds do not apply database migrations. Apply schema changes
+intentionally before or alongside the release using the database commands above.
 
 ### Adding a New App
 
@@ -292,7 +328,7 @@ before or alongside the release using the database commands above.
 3. Deploy
 
 The monorepo is configured to deploy all apps independently via Turborepo.
-Vercel deploy builds do not run database schema pushes; run database schema
+Vercel deploy builds do not run database migrations; run database schema
 commands explicitly when schema changes are part of a release.
 The Vercel app configs use `turbo run build --filter=<app> --only` so deploys
 build only the selected Next.js app and do not run test or tooling package tasks.

@@ -54,6 +54,9 @@ sudo service postgresql start   # Linux
 
 # Verify DATABASE_URL format
 # Should be: postgresql://user:password@host:port/database
+
+# Apply pending Drizzle migrations intentionally
+pnpm --filter @repo/database db:migrate
 ```
 
 **Issue**: Environment variables not loading
@@ -248,11 +251,27 @@ psql $DATABASE_URL -c "SELECT * FROM pg_stat_activity;"
 
 ```bash
 # Enable query logging in dev
-# Add to .env: DEBUG="prisma:query"
+# Add targeted Drizzle query logging around the query you are debugging.
 
 # Check slow queries
 # Look in logs for queries > 1s
 ```
+
+#### Migration Issues
+
+```bash
+# Generate a migration after editing packages/database/src/schema.ts
+pnpm --filter @repo/database db:generate --name describe_change
+
+# Check migration consistency before applying
+pnpm --filter @repo/database db:check
+
+# Apply pending migrations
+pnpm --filter @repo/database db:migrate
+```
+
+Do not use `db:push` for shared databases. It bypasses migration history and is
+kept only as `db:push:unsafe` for throwaway database experiments.
 
 ### Getting Help
 

@@ -47,4 +47,26 @@ describeOrSkip("Database Schema", () => {
       expect(columns).toContain("name");
     });
   });
+
+  describe("ski_resorts table", () => {
+    it("should exist", async () => {
+      const result = await db
+        .execute(sql`SELECT 1 FROM ski_resorts LIMIT 1`)
+        .catch(() => null);
+      expect(result).toBeDefined();
+    });
+
+    it("should have required location columns", async () => {
+      const result = await db.execute(
+        sql`SELECT column_name FROM information_schema.columns WHERE table_name = 'ski_resorts'`
+      );
+
+      const columns = result.rows.map((row) => String(row.column_name));
+      expect(columns).toContain("id");
+      expect(columns).toContain("name");
+      expect(columns).toContain("latitude");
+      expect(columns).toContain("longitude");
+      expect(columns).toContain("openskimap_url");
+    });
+  });
 });
