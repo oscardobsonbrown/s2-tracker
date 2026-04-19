@@ -8,6 +8,27 @@
       "when": 1774875846471,
       "tag": "0000_skinny_sunfire",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1776594155006,
+      "tag": "0001_add_ski_resorts",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776594238473,
+      "tag": "0002_widen_ski_resort_text_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1776594316821,
+      "tag": "0003_add_ski_resort_indexes",
+      "breakpoints": true
     }
   ]
 }

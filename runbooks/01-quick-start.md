@@ -26,6 +26,9 @@ cp apps/api/.env.example apps/api/.env
 # Fill in required environment variables (see .env.example files)
 # Required: DATABASE_URL, POSTHOG_API_KEY, CLERK_SECRET_KEY
 
+# Apply committed database migrations
+pnpm --filter @repo/database db:migrate
+
 # Start development
 pnpm dev
 ```
@@ -70,6 +73,14 @@ pnpm lint
 
 **Issue**: `DATABASE_URL` not found
 **Solution**: Ensure PostgreSQL is running and DATABASE_URL is set
+
+**Issue**: Database schema is out of date
+**Solution**: Generate and apply migrations intentionally:
+```bash
+pnpm --filter @repo/database db:generate --name describe_change
+pnpm --filter @repo/database db:check
+pnpm --filter @repo/database db:migrate
+```
 
 **Issue**: Clerk authentication not working
 **Solution**: Verify Clerk keys are correct and match the environment

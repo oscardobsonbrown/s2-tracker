@@ -92,6 +92,19 @@ DATABASE_URL="postgresql://postgres:password@host.supabase.co:6543/postgres?pgbo
 DATABASE_URL="postgresql://postgres:password@localhost:5432/nextship"
 ```
 
+**Migration workflow:**
+
+Schema changes are code-first and migration-first:
+
+```bash
+pnpm --filter @repo/database db:generate --name add_example_table
+pnpm --filter @repo/database db:check
+pnpm --filter @repo/database db:migrate
+```
+
+Review generated SQL in `packages/database/drizzle/` before applying it. Do not
+use `db:push` for shared databases because it bypasses migration history.
+
 ---
 
 ## Payments
