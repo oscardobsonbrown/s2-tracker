@@ -57,6 +57,10 @@ sudo service postgresql start   # Linux
 
 # Apply pending Drizzle migrations intentionally
 pnpm --filter @repo/database db:migrate
+
+# Refresh reference datasets when records are missing
+pnpm db:import:airports
+pnpm db:import:ski-resorts
 ```
 
 **Issue**: Environment variables not loading

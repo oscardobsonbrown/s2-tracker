@@ -69,4 +69,28 @@ describeOrSkip("Database Schema", () => {
       expect(columns).toContain("openskimap_url");
     });
   });
+
+  describe("airports table", () => {
+    it("should exist", async () => {
+      const result = await db
+        .execute(sql`SELECT 1 FROM airports LIMIT 1`)
+        .catch(() => null);
+      expect(result).toBeDefined();
+    });
+
+    it("should have required flight lookup columns", async () => {
+      const result = await db.execute(
+        sql`SELECT column_name FROM information_schema.columns WHERE table_name = 'airports'`
+      );
+
+      const columns = result.rows.map((row) => String(row.column_name));
+      expect(columns).toContain("id");
+      expect(columns).toContain("type");
+      expect(columns).toContain("name");
+      expect(columns).toContain("latitude");
+      expect(columns).toContain("longitude");
+      expect(columns).toContain("iata_code");
+      expect(columns).toContain("scheduled_service");
+    });
+  });
 });

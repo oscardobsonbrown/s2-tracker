@@ -42,6 +42,8 @@ This is **next-ship**, a production-grade Turborepo template for Next.js applica
 - Schema defined in `packages/database/src/schema.ts`
 - Migration files live in `packages/database/drizzle/` and must be committed with schema changes
 - Apply migrations with `pnpm db:migrate`; do not use `db:push` for shared databases
+- Refresh medium/large airport data with `pnpm db:import:airports`
+- Refresh ski resort data with `pnpm db:import:ski-resorts`
 - Studio available via `pnpm db:studio`
 
 ### Error Tracking

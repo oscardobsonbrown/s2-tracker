@@ -29,6 +29,13 @@
       "when": 1776594316821,
       "tag": "0003_add_ski_resort_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1776599967898,
+      "tag": "0004_add_airports",
+      "breakpoints": true
     }
   ]
 }

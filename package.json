@@ -36,6 +36,7 @@
     "check": "ultracite check",
     "db:generate": "pnpm --filter @repo/database db:generate",
     "db:check": "pnpm --filter @repo/database db:check",
+    "db:import:airports": "pnpm --filter @repo/database db:import:airports",
     "db:import:ski-resorts": "pnpm --filter @repo/database db:import:ski-resorts",
     "db:migrate": "pnpm --filter @repo/database db:migrate",
     "db:studio": "pnpm --filter @repo/database db:studio",

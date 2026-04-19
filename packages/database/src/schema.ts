@@ -57,3 +57,47 @@ export const skiResorts = pgTable(
     index("ski_resorts_location_idx").on(table.latitude, table.longitude),
   ]
 );
+
+export const airports = pgTable(
+  "airports",
+  {
+    id: varchar("id", { length: 128 }).primaryKey(),
+    ourairportsId: integer("ourairports_id").notNull().unique(),
+    ident: varchar("ident", { length: 32 }).notNull().unique(),
+    type: varchar("type", { length: 64 }).notNull(),
+    name: text("name").notNull(),
+    latitude: doublePrecision("latitude").notNull(),
+    longitude: doublePrecision("longitude").notNull(),
+    elevationFt: integer("elevation_ft"),
+    continent: varchar("continent", { length: 8 }),
+    isoCountry: varchar("iso_country", { length: 8 }),
+    isoRegion: varchar("iso_region", { length: 32 }),
+    municipality: text("municipality"),
+    scheduledService: boolean("scheduled_service").notNull().default(false),
+    icaoCode: varchar("icao_code", { length: 16 }),
+    iataCode: varchar("iata_code", { length: 8 }),
+    gpsCode: varchar("gps_code", { length: 32 }),
+    localCode: varchar("local_code", { length: 32 }),
+    homeLink: text("home_link"),
+    wikipediaLink: text("wikipedia_link"),
+    keywords: text("keywords"),
+    sourceUrl: text("source_url").notNull(),
+    importedAt: timestamp("imported_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("airports_location_idx").on(table.latitude, table.longitude),
+    index("airports_iata_code_idx").on(table.iataCode),
+    index("airports_icao_code_idx").on(table.icaoCode),
+    index("airports_type_idx").on(table.type),
+    index("airports_country_idx").on(table.isoCountry),
+    index("airports_scheduled_service_idx").on(table.scheduledService),
+  ]
+);
