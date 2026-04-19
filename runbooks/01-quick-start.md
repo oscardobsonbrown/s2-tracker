@@ -29,6 +29,10 @@ cp apps/api/.env.example apps/api/.env
 # Apply committed database migrations
 pnpm --filter @repo/database db:migrate
 
+# Optional: refresh reference datasets
+pnpm db:import:airports
+pnpm db:import:ski-resorts
+
 # Start development
 pnpm dev
 ```
@@ -81,6 +85,15 @@ pnpm --filter @repo/database db:generate --name describe_change
 pnpm --filter @repo/database db:check
 pnpm --filter @repo/database db:migrate
 ```
+
+**Issue**: Airport or ski resort reference data is missing
+**Solution**: Refresh the reference datasets after migrations:
+```bash
+pnpm db:import:airports
+pnpm db:import:ski-resorts
+```
+
+Airport imports use OurAirports and keep only medium and large airports.
 
 **Issue**: Clerk authentication not working
 **Solution**: Verify Clerk keys are correct and match the environment

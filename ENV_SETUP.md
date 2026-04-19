@@ -105,6 +105,16 @@ pnpm --filter @repo/database db:migrate
 Review generated SQL in `packages/database/drizzle/` before applying it. Do not
 use `db:push` for shared databases because it bypasses migration history.
 
+**Reference data imports:**
+
+```bash
+pnpm db:import:ski-resorts
+pnpm db:import:airports
+```
+
+The airport importer uses OurAirports and keeps only `large_airport` and
+`medium_airport` rows for flight-origin lookup.
+
 ---
 
 ## Payments

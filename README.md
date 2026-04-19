@@ -244,6 +244,15 @@ Refresh the ski resort dataset from OpenSkiMap:
 pnpm db:import:ski-resorts
 ```
 
+Refresh the airport dataset from OurAirports. The importer keeps only
+`large_airport` and `medium_airport` rows so flight lookup does not use
+helipads, seaplane bases, small/private airfields, balloonports, or closed
+airports:
+
+```bash
+pnpm db:import:airports
+```
+
 For database integration tests with an ephemeral Neon branch:
 
 ```bash
