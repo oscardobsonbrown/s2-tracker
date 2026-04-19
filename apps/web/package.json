@@ -25,6 +25,7 @@
     "@repo/seo": "workspace:*",
     "@rescale/nemo": "^2.0.2",
     "@t3-oss/env-nextjs": "^0.13.8",
+    "cobe": "^2.0.1",
     "date-fns": "^4.1.0",
     "fumadocs-core": "^16.2.3",
     "import-in-the-middle": "^2.0.0",
