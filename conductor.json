@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "setup": "find \"$CONDUCTOR_ROOT_PATH\" \\( -path \"$CONDUCTOR_ROOT_PATH/.git\" -o -path \"*/node_modules\" \\) -prune -o \\( -name \".env\" -o -name \".env.local\" -o -name \".env.development.local\" -o -name \".env.test.local\" -o -name \".env.production.local\" \\) -type f -print | while IFS= read -r source; do target=\"${source#$CONDUCTOR_ROOT_PATH/}\"; mkdir -p \"$(dirname \"$target\")\"; cp \"$source\" \"$target\"; done; pnpm install"
+  }
+}
