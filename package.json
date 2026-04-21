@@ -26,6 +26,7 @@
   "scripts": {
     "build": "turbo build",
     "prepack": "tsup",
+    "worktree:setup": "bash ./scripts/codex-worktree-setup.sh",
     "dev": "turbo dev",
     "dev:doppler": "./scripts/doppler-run.sh shared -- pnpm dev",
     "dev:app:doppler": "./scripts/doppler-run.sh app -- pnpm --filter app dev",
