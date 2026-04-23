@@ -5,6 +5,23 @@ import type { COBEOptions, Globe } from "cobe";
 import createGlobe from "cobe";
 import type { ReactElement, PointerEvent as ReactPointerEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  applyInertiaMotion,
+  clamp,
+  getFrameScale,
+  getMotionMode,
+  getReleaseAngularVelocity,
+  getTargetRotationSpeed,
+  horizontalDragRadians,
+  inertiaVelocityBlend,
+  maxPhiReleaseVelocity,
+  maxThetaReleaseVelocity,
+  nominalFrameTime,
+  rotationEase,
+  thetaMax,
+  thetaMin,
+  verticalDragRadians,
+} from "./cobe-globe-motion";
 
 interface CobeGlobeProps {
   readonly className?: string;
@@ -18,6 +35,12 @@ interface DragStart {
   readonly theta: number;
 }
 
+interface PointerSample {
+  readonly clientX: number;
+  readonly clientY: number;
+  readonly timeStamp: number;
+}
+
 interface GlobeTag {
   readonly detail: string;
   readonly id: string;
@@ -26,14 +49,6 @@ interface GlobeTag {
   readonly offset: [number, number];
   readonly placement: "above" | "below";
 }
-
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(Math.max(value, min), max);
-
-const horizontalDragRadians = Math.PI * 1.2;
-const verticalDragRadians = Math.PI * 0.7;
-const autoRotationSpeed = 0.0035;
-const rotationEase = 0.09;
 
 const globeTags = [
   {
@@ -102,11 +117,15 @@ export function CobeGlobe({
   const phiRef = useRef(0);
   const thetaRef = useRef(0.25);
   const rotationSpeedRef = useRef(0);
+  const angularVelocityPhiRef = useRef(0);
+  const angularVelocityThetaRef = useRef(0);
   const isDraggingRef = useRef(false);
   const isReducedMotionRef = useRef(false);
   const isTagOpenRef = useRef(false);
   const openTagIdRef = useRef<string | null>(null);
   const dragStartRef = useRef<DragStart | null>(null);
+  const lastPointerSampleRef = useRef<PointerSample | null>(null);
+  const lastFrameTimeRef = useRef<number | null>(null);
   const canvasSizeRef = useRef({ height: size, width: size });
   const renderSizeRef = useRef({ height: size, width: size });
 
@@ -178,9 +197,19 @@ export function CobeGlobe({
 
     const handleReducedMotionChange = (event: MediaQueryListEvent) => {
       isReducedMotionRef.current = event.matches;
+
+      if (event.matches) {
+        angularVelocityPhiRef.current = 0;
+        angularVelocityThetaRef.current = 0;
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      lastFrameTimeRef.current = null;
     };
 
     mediaQuery.addEventListener("change", handleReducedMotionChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     updateCanvasSize();
 
     let resizeObserver: ResizeObserver | undefined;
@@ -225,6 +254,10 @@ export function CobeGlobe({
 
       return () => {
         mediaQuery.removeEventListener("change", handleReducedMotionChange);
+        document.removeEventListener(
+          "visibilitychange",
+          handleVisibilityChange
+        );
         resizeObserver?.disconnect();
         window.removeEventListener("resize", updateCanvasSize);
       };
@@ -233,37 +266,71 @@ export function CobeGlobe({
     let animationFrameId = 0;
 
     const renderFrame = () => {
-      if (globeRef.current) {
-        globeRef.current.update({
-          height: renderSizeRef.current.height,
-          phi: phiRef.current,
-          theta: thetaRef.current,
-          width: renderSizeRef.current.width,
-        });
+      if (!globeRef.current) {
+        animationFrameId = window.requestAnimationFrame(renderFrame);
 
-        updateTagPositions();
-
-        const targetRotationSpeed =
-          isReducedMotionRef.current ||
-          isDraggingRef.current ||
-          isTagOpenRef.current
-            ? 0
-            : autoRotationSpeed;
-        const nextRotationSpeed =
-          rotationSpeedRef.current +
-          (targetRotationSpeed - rotationSpeedRef.current) * rotationEase;
-
-        rotationSpeedRef.current =
-          Math.abs(targetRotationSpeed - nextRotationSpeed) < 0.000_01
-            ? targetRotationSpeed
-            : nextRotationSpeed;
-
-        if (isDraggingRef.current) {
-          rotationSpeedRef.current = 0;
-        }
-
-        phiRef.current += rotationSpeedRef.current;
+        return;
       }
+
+      const now = performance.now();
+      const frameScale = getFrameScale({
+        lastFrameTime: lastFrameTimeRef.current,
+        now,
+      });
+
+      lastFrameTimeRef.current = now;
+
+      const inertiaMotion = applyInertiaMotion({
+        angularVelocityPhi: angularVelocityPhiRef.current,
+        angularVelocityTheta: angularVelocityThetaRef.current,
+        frameScale,
+        isDragging: isDraggingRef.current,
+        phi: phiRef.current,
+        shouldPause: isReducedMotionRef.current || isTagOpenRef.current,
+        theta: thetaRef.current,
+      });
+
+      angularVelocityPhiRef.current = inertiaMotion.angularVelocityPhi;
+      angularVelocityThetaRef.current = inertiaMotion.angularVelocityTheta;
+      phiRef.current = inertiaMotion.phi;
+      thetaRef.current = inertiaMotion.theta;
+
+      if (isDraggingRef.current) {
+        rotationSpeedRef.current = 0;
+      }
+
+      const targetRotationSpeed = getTargetRotationSpeed({
+        angularVelocityPhi: angularVelocityPhiRef.current,
+        isDragging: isDraggingRef.current,
+        isReducedMotion: isReducedMotionRef.current,
+        isTagOpen: isTagOpenRef.current,
+      });
+      const nextRotationSpeed =
+        rotationSpeedRef.current +
+        (targetRotationSpeed - rotationSpeedRef.current) * rotationEase;
+
+      rotationSpeedRef.current =
+        Math.abs(targetRotationSpeed - nextRotationSpeed) < 0.000_01
+          ? targetRotationSpeed
+          : nextRotationSpeed;
+      phiRef.current += rotationSpeedRef.current;
+      container.dataset.motionMode = getMotionMode({
+        angularVelocityPhi: angularVelocityPhiRef.current,
+        angularVelocityTheta: angularVelocityThetaRef.current,
+        isDragging: isDraggingRef.current,
+        isReducedMotion: isReducedMotionRef.current,
+        isTagOpen: isTagOpenRef.current,
+        rotationSpeed: rotationSpeedRef.current,
+      });
+
+      globeRef.current.update({
+        height: renderSizeRef.current.height,
+        phi: phiRef.current,
+        theta: thetaRef.current,
+        width: renderSizeRef.current.width,
+      });
+
+      updateTagPositions();
 
       animationFrameId = window.requestAnimationFrame(renderFrame);
     };
@@ -273,11 +340,13 @@ export function CobeGlobe({
     return () => {
       window.cancelAnimationFrame(animationFrameId);
       mediaQuery.removeEventListener("change", handleReducedMotionChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       resizeObserver?.disconnect();
       window.removeEventListener("resize", updateCanvasSize);
       globeRef.current?.destroy();
       globeRef.current = null;
       canvasRef.current = null;
+      lastFrameTimeRef.current = null;
       host.replaceChildren();
     };
   }, [size, updateTagPositions]);
@@ -285,12 +354,19 @@ export function CobeGlobe({
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     event.preventDefault();
     setOpenTagId(null);
+    angularVelocityPhiRef.current = 0;
+    angularVelocityThetaRef.current = 0;
     isDraggingRef.current = true;
     dragStartRef.current = {
       clientX: event.clientX,
       clientY: event.clientY,
       phi: phiRef.current,
       theta: thetaRef.current,
+    };
+    lastPointerSampleRef.current = {
+      clientX: event.clientX,
+      clientY: event.clientY,
+      timeStamp: event.timeStamp,
     };
     event.currentTarget.setPointerCapture(event.pointerId);
   };
@@ -308,14 +384,64 @@ export function CobeGlobe({
       dragStartRef.current.phi + (deltaX / width) * horizontalDragRadians;
     thetaRef.current = clamp(
       dragStartRef.current.theta + (deltaY / height) * verticalDragRadians,
-      -0.45,
-      0.75
+      thetaMin,
+      thetaMax
     );
+
+    const previousPointerSample = lastPointerSampleRef.current;
+
+    if (previousPointerSample) {
+      const deltaTime = Math.max(
+        event.timeStamp - previousPointerSample.timeStamp,
+        1
+      );
+      const samplePhiVelocity = clamp(
+        (((event.clientX - previousPointerSample.clientX) / width) *
+          horizontalDragRadians) /
+          (deltaTime / nominalFrameTime),
+        -maxPhiReleaseVelocity,
+        maxPhiReleaseVelocity
+      );
+      const sampleThetaVelocity = clamp(
+        (((event.clientY - previousPointerSample.clientY) / height) *
+          verticalDragRadians) /
+          (deltaTime / nominalFrameTime),
+        -maxThetaReleaseVelocity,
+        maxThetaReleaseVelocity
+      );
+
+      angularVelocityPhiRef.current =
+        angularVelocityPhiRef.current * (1 - inertiaVelocityBlend) +
+        samplePhiVelocity * inertiaVelocityBlend;
+      angularVelocityThetaRef.current =
+        angularVelocityThetaRef.current * (1 - inertiaVelocityBlend) +
+        sampleThetaVelocity * inertiaVelocityBlend;
+    }
+
+    lastPointerSampleRef.current = {
+      clientX: event.clientX,
+      clientY: event.clientY,
+      timeStamp: event.timeStamp,
+    };
   };
 
   const stopDragging = (event: ReactPointerEvent<HTMLDivElement>) => {
     isDraggingRef.current = false;
     dragStartRef.current = null;
+    const releaseAngularVelocity = getReleaseAngularVelocity({
+      angularVelocityPhi: angularVelocityPhiRef.current,
+      angularVelocityTheta: angularVelocityThetaRef.current,
+      idleTime: lastPointerSampleRef.current
+        ? Math.max(event.timeStamp - lastPointerSampleRef.current.timeStamp, 0)
+        : Number.POSITIVE_INFINITY,
+      isReducedMotion: isReducedMotionRef.current,
+      isTagOpen: isTagOpenRef.current,
+    });
+
+    angularVelocityPhiRef.current = releaseAngularVelocity.angularVelocityPhi;
+    angularVelocityThetaRef.current =
+      releaseAngularVelocity.angularVelocityTheta;
+    lastPointerSampleRef.current = null;
 
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
@@ -330,6 +456,7 @@ export function CobeGlobe({
         "relative aspect-square w-full cursor-grab touch-none select-none active:cursor-grabbing",
         className
       )}
+      data-motion-mode="paused"
       onPointerCancel={stopDragging}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -354,6 +481,11 @@ export function CobeGlobe({
               data-globe-tag={tag.id}
               key={tag.id}
               onClick={() => {
+                if (!isOpen) {
+                  angularVelocityPhiRef.current = 0;
+                  angularVelocityThetaRef.current = 0;
+                }
+
                 setOpenTagId(isOpen ? null : tag.id);
               }}
               onPointerDown={(event) => {
