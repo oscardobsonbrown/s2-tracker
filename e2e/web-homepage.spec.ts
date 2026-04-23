@@ -106,6 +106,49 @@ test.describe("Web Homepage", () => {
     expect(pageErrors).toEqual([]);
   });
 
+  test("globe keeps moving briefly after drag release", async ({ page }) => {
+    const pageErrors: string[] = [];
+
+    page.on("pageerror", (error) => {
+      pageErrors.push(error.message);
+    });
+
+    await page.goto("/");
+    await page.waitForLoadState("domcontentloaded");
+
+    const globe = page.getByRole("img", {
+      name: interactiveGlobePattern,
+    });
+
+    await expect(globe).toBeVisible();
+
+    const bounds = await globe.boundingBox();
+
+    expect(bounds?.width).toBeGreaterThan(0);
+    expect(bounds?.height).toBeGreaterThan(0);
+
+    if (!bounds) {
+      throw new Error("Globe canvas should have visible bounds.");
+    }
+
+    await page.mouse.move(
+      bounds.x + bounds.width / 2,
+      bounds.y + bounds.height / 2
+    );
+    await page.mouse.down();
+    await page.mouse.move(
+      bounds.x + bounds.width / 2 + 140,
+      bounds.y + bounds.height / 2 + 70,
+      { steps: 10 }
+    );
+    await page.mouse.up();
+
+    await expect(globe).toHaveAttribute("data-motion-mode", "inertia");
+    await page.waitForTimeout(1400);
+    await expect(globe).toHaveAttribute("data-motion-mode", "autoplay");
+    expect(pageErrors).toEqual([]);
+  });
+
   test("globe tags open and pause rotation", async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("domcontentloaded");
@@ -123,17 +166,30 @@ test.describe("Web Homepage", () => {
       return tag && getComputedStyle(tag).opacity === "1";
     });
 
+    const bounds = await globe.boundingBox();
+
+    expect(bounds?.width).toBeGreaterThan(0);
+    expect(bounds?.height).toBeGreaterThan(0);
+
+    if (!bounds) {
+      throw new Error("Globe canvas should have visible bounds.");
+    }
+
+    await page.mouse.move(
+      bounds.x + bounds.width / 2,
+      bounds.y + bounds.height / 2
+    );
+    await page.mouse.down();
+    await page.mouse.move(
+      bounds.x + bounds.width / 2 + 100,
+      bounds.y + bounds.height / 2 + 40,
+      { steps: 8 }
+    );
+    await page.mouse.up();
+
     await nisekoTag.click({ force: true });
     await expect(nisekoTag).toHaveAttribute("aria-expanded", "true");
     await expect(page.getByText("Hokkaido powder")).toBeVisible();
-    await page.waitForTimeout(1500);
-
-    const firstOpenScreenshot = await globe.screenshot();
-
-    await page.waitForTimeout(700);
-
-    const secondOpenScreenshot = await globe.screenshot();
-
-    expect(secondOpenScreenshot.equals(firstOpenScreenshot)).toBe(true);
+    await expect(globe).toHaveAttribute("data-motion-mode", "paused");
   });
 });
