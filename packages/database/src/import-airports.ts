@@ -1,7 +1,7 @@
-import { loadEnvFile } from "node:process";
 import { pathToFileURL } from "node:url";
 import { Pool } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-serverless";
+import { loadDatabaseEnv } from "./load-database-env";
 import { airports } from "./schema";
 
 export const ourAirportsCsvUrl =
@@ -246,7 +246,7 @@ function countByType(airportRows: AirportInsert[]) {
 
 export async function importAirports() {
   if (!process.env.DATABASE_URL) {
-    loadEnvFile(".env");
+    loadDatabaseEnv();
   }
 
   const databaseUrl = process.env.DATABASE_URL;

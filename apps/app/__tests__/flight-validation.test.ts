@@ -17,6 +17,7 @@ describe("validateFlightPayload", () => {
         destination: " lax ",
         departureDate: "2026-05-01",
         adults: "2",
+        cabin: "business",
         currency: "usd",
       })
     ).toEqual({
@@ -28,6 +29,7 @@ describe("validateFlightPayload", () => {
         departureDate: "2026-05-01",
         returnDate: undefined,
         adults: 2,
+        cabin: "business",
         currency: "USD",
       },
     });
@@ -42,6 +44,7 @@ describe("validateFlightPayload", () => {
         departureDate: "2026-05-02",
         returnDate: "2026-05-01",
         adults: 1,
+        cabin: "economy",
         currency: "USD",
       })
     ).toEqual({

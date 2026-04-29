@@ -15,5 +15,17 @@ export const database = drizzle(pool, { schema });
 
 // Re-export drizzle-orm helpers
 // biome-ignore lint/performance/noBarrelFile: package entrypoint re-exports query helpers and schema
-export { eq, ilike } from "drizzle-orm";
+export {
+  and,
+  asc,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  isNotNull,
+  or,
+  sql,
+} from "drizzle-orm";
 export * from "./src/schema";
+export * from "./src/travel-airports";
+export * from "./src/travel-ranking";

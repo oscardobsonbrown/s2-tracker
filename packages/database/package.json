@@ -15,6 +15,8 @@
     "db:seed": "tsx src/seed.ts",
     "db:import:airports": "tsx src/import-airports.ts",
     "db:import:ski-resorts": "tsx src/import-ski-resorts.ts",
+    "db:import:resort-airport-links": "tsx src/import-resort-airport-links.ts",
+    "db:import:resort-weather-scores": "tsx src/import-resort-weather-scores.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ephemeral": "tsx scripts/ephemeral-test.ts",

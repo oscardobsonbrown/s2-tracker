@@ -21,6 +21,18 @@ function errorResponse(code: FlightErrorCode, message: string, status = 400) {
   );
 }
 
+function flightProviderStatus(code: FlightErrorCode) {
+  if (code === "TIMEOUT") {
+    return 504;
+  }
+
+  if (code === "NO_FLIGHTS_FOUND" || code === "PROVIDER_LOADING") {
+    return 404;
+  }
+
+  return 502;
+}
+
 export async function POST(request: Request) {
   const startedAt = performance.now();
   let body: unknown;
@@ -70,10 +82,7 @@ export async function POST(request: Request) {
   try {
     const data = await searchFlights(validation.data);
     const response = {
-      query: {
-        ...validation.data,
-        cabin: "economy",
-      },
+      query: validation.data,
       priceTrend: data.priceTrend,
       flights: data.flights,
     } satisfies FlightSearchResponse;
@@ -90,7 +99,7 @@ export async function POST(request: Request) {
     return Response.json(response);
   } catch (error) {
     if (error instanceof FlightProviderError) {
-      const status = error.code === "TIMEOUT" ? 504 : 502;
+      const status = flightProviderStatus(error.code);
 
       routeLogger.warn(
         {

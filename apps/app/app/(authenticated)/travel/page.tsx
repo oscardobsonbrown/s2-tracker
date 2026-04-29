@@ -4,8 +4,8 @@ import { Header } from "../components/header";
 import { TravelTools } from "./travel-tools";
 
 export const metadata: Metadata = {
-  title: "Travel Conditions",
-  description: "Search flights and check surf or snow conditions.",
+  title: "Travel Recommendations",
+  description: "Rank ski trips by forecast quality and match flights.",
 };
 
 const travelLogger = logger.child({

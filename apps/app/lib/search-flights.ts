@@ -94,6 +94,13 @@ function readProviderData(stdout: string): ProviderSuccess["data"] {
   return envelope.data;
 }
 
+function isExpectedProviderMiss(error: unknown): error is FlightProviderError {
+  return (
+    error instanceof FlightProviderError &&
+    (error.code === "NO_FLIGHTS_FOUND" || error.code === "PROVIDER_LOADING")
+  );
+}
+
 function handleProviderClose({
   durationMs,
   exitCode,
@@ -140,6 +147,22 @@ function handleProviderClose({
     );
     settle(null, data);
   } catch (error) {
+    if (isExpectedProviderMiss(error)) {
+      flightLogger.info(
+        {
+          code: error.code,
+          message: error.message,
+          stderr: stderr.slice(0, 300),
+          stderrBytes: stderr.length,
+          stdoutBytes: stdout.length,
+          durationMs,
+        },
+        "Flight provider returned no usable itinerary"
+      );
+      settle(error);
+      return;
+    }
+
     const logMethod =
       error instanceof FlightProviderError
         ? flightLogger.warn
@@ -181,6 +204,7 @@ export async function searchFlights(input: FlightSearchInput) {
       origin: input.origin,
       destination: input.destination,
       adults: input.adults,
+      cabin: input.cabin,
       currency: input.currency,
       fetchMode,
       pythonBin,

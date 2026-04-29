@@ -7,25 +7,27 @@ import {
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import { Input } from "@repo/design-system/components/ui/input";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@repo/design-system/components/ui/native-select";
 import { cn } from "@repo/design-system/lib/utils";
+import Link from "next/link";
 import type { FormEvent, ReactNode } from "react";
 import { useMemo, useState } from "react";
+import type { FlightCabin, FlightResult, TripType } from "@/lib/flight-types";
 import type {
-  FlightApiResponse,
-  FlightSearchError,
-  FlightSearchResponse,
-  TripType,
-} from "@/lib/flight-types";
-import type {
-  SnowConditionsResponse,
-  SurfConditionsResponse,
-  WeatherApiError,
-} from "@/lib/weather-types";
-
-type WeatherKind = "surf" | "snow";
-type WeatherResponse = SurfConditionsResponse | SnowConditionsResponse;
+  TravelApiError,
+  TravelRecommendationResult,
+  TravelRecommendationsResponse,
+} from "@/lib/travel-types";
 
 const TODAY = new Date().toISOString().slice(0, 10);
+
+interface SubmittedPreset {
+  cabin: FlightCabin;
+  maxStops: 0 | 1 | 2;
+}
 
 function defaultReturnDate() {
   const date = new Date();
@@ -33,27 +35,19 @@ function defaultReturnDate() {
   return date.toISOString().slice(0, 10);
 }
 
-function isFlightErrorResponse(
-  response: FlightApiResponse
-): response is FlightSearchError {
-  return "error" in response;
+function latestForecastDate() {
+  const date = new Date();
+  date.setDate(date.getDate() + 14);
+  return date.toISOString().slice(0, 10);
 }
 
-function isWeatherError(value: unknown): value is WeatherApiError {
+function isTravelApiError(value: unknown): value is TravelApiError {
   return (
     typeof value === "object" &&
     value !== null &&
     "error" in value &&
-    typeof (value as WeatherApiError).error?.message === "string"
+    typeof (value as TravelApiError).error?.message === "string"
   );
-}
-
-function formatPrice(price: string) {
-  if (!price || price === "0") {
-    return "Price not listed";
-  }
-
-  return price.startsWith("$") ? price : `$${price}`;
 }
 
 function formatStops(stops: number | "Unknown") {
@@ -68,28 +62,77 @@ function formatStops(stops: number | "Unknown") {
   return `${stops} ${stops === 1 ? "stop" : "stops"}`;
 }
 
-function formatValue(value: number | null, unit = "", digits = 1) {
-  if (value === null) {
-    return "Not available";
-  }
-
-  return `${value.toFixed(digits)}${unit ? ` ${unit}` : ""}`;
+function formatTemperature(value: number | null) {
+  return value === null ? "Not available" : `${value.toFixed(1)} C`;
 }
 
-function formatDirection(value: number | null) {
-  if (value === null) {
-    return "Not available";
-  }
-
-  return `${Math.round(value)} deg`;
+function formatDistance(value: number | null) {
+  return value === null ? "Not available" : `${value.toFixed(1)} km`;
 }
 
-function locationLabel(response: WeatherResponse) {
-  const { location } = response;
+function formatSnow(value: number | null) {
+  return value === null ? "Not available" : `${value.toFixed(1)} cm`;
+}
 
-  return [location.name, location.admin1, location.country]
-    .filter(Boolean)
-    .join(", ");
+function formatPrice(price: string) {
+  if (!price || price === "0") {
+    return "Price not listed";
+  }
+
+  return price.startsWith("$") ? price : `$${price}`;
+}
+
+function formatAirlines(flight: FlightResult) {
+  if (flight.airlines?.length) {
+    return flight.airlines.join(", ");
+  }
+
+  const normalizedName = flight.name.trim();
+
+  if (!normalizedName) {
+    return "Multiple airlines";
+  }
+
+  return normalizedName;
+}
+
+function formatFlightTiming(flight: FlightResult) {
+  const departure = flight.departure.trim();
+  const arrival = flight.arrival.trim();
+  const stopSummary = flight.stopSummary || formatStops(flight.stops);
+
+  if (departure && arrival) {
+    return `${departure} to ${arrival} • ${stopSummary}`;
+  }
+
+  if (departure) {
+    return `${departure} departure • ${stopSummary}`;
+  }
+
+  if (arrival) {
+    return `${arrival} arrival • ${stopSummary}`;
+  }
+
+  if (flight.duration.trim()) {
+    return `${flight.duration.trim()} • ${stopSummary}`;
+  }
+
+  return stopSummary;
+}
+
+function isSameFlight(
+  first: TravelRecommendationResult["flightMatch"]["fallbackFlight"],
+  second: TravelRecommendationResult["flightMatch"]["matchingFlight"]
+) {
+  return (
+    Boolean(first && second) &&
+    first?.name === second?.name &&
+    first?.departure === second?.departure &&
+    first?.arrival === second?.arrival &&
+    first?.duration === second?.duration &&
+    first?.stops === second?.stops &&
+    first?.price === second?.price
+  );
 }
 
 function Field({
@@ -109,224 +152,331 @@ function Field({
   );
 }
 
-function Metric({
-  detail,
+function FlightSummary({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="grid gap-1 rounded-md border bg-muted/20 p-3">
+      <span className="text-muted-foreground text-xs uppercase">{label}</span>
+      <strong className="text-sm leading-tight">{value}</strong>
+    </div>
+  );
+}
+
+function FlightItinerary({
+  flight,
   label,
-  value,
 }: {
-  detail?: string;
+  flight: FlightResult;
   label: string;
-  value: string;
 }) {
   return (
-    <div className="grid min-h-24 gap-1 rounded-md border bg-muted/20 p-3">
-      <span className="text-muted-foreground text-xs uppercase">{label}</span>
-      <strong className="text-lg leading-tight">{value}</strong>
-      {detail ? (
-        <small className="text-muted-foreground">{detail}</small>
-      ) : null}
+    <div className="grid gap-2 text-sm">
+      <div className="grid gap-1">
+        <span className="font-medium">{label}</span>
+        <span>
+          {formatAirlines(flight)} • {formatPrice(flight.price)}
+        </span>
+        <span className="text-muted-foreground">
+          {formatFlightTiming(flight)}
+        </span>
+      </div>
+      <Button
+        className="w-fit"
+        nativeButton={false}
+        render={
+          <a href={flight.bookingUrl} rel="noreferrer" target="_blank">
+            Open booking page
+          </a>
+        }
+        size="sm"
+        variant="outline"
+      />
     </div>
+  );
+}
+
+function flightStatusLabel(
+  status: TravelRecommendationResult["flightMatch"]["status"]
+) {
+  if (status === "preset-match") {
+    return "Preset match";
+  }
+
+  if (status === "fallback-only") {
+    return "Available flight";
+  }
+
+  return "No flight";
+}
+
+function RecommendationCard({
+  cabin,
+  maxStops,
+  row,
+}: {
+  cabin: FlightCabin;
+  maxStops: 0 | 1 | 2;
+  row: TravelRecommendationResult;
+}) {
+  const fallbackFlight = row.flightMatch.fallbackFlight;
+  const shouldShowFallback =
+    fallbackFlight &&
+    !isSameFlight(fallbackFlight, row.flightMatch.matchingFlight);
+  const fallbackLabel = row.flightMatch.matchingFlight
+    ? "Best overall alternative"
+    : "Best available flight";
+
+  return (
+    <article className="grid gap-4 rounded-lg border bg-background p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="grid gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge>#{row.rank}</Badge>
+            <strong className="text-lg">{row.resort.name}</strong>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            {[row.resort.locality, row.resort.region, row.resort.country]
+              .filter(Boolean)
+              .join(", ")}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Badge variant="secondary">
+            Score {row.weather.resortScore.toFixed(1)}
+          </Badge>
+          <Badge
+            variant={
+              row.flightMatch.status === "preset-match" ? "default" : "outline"
+            }
+          >
+            {flightStatusLabel(row.flightMatch.status)}
+          </Badge>
+        </div>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
+        <FlightSummary
+          label="Snowfall 7d"
+          value={formatSnow(row.weather.snowfall7Cm)}
+        />
+        <FlightSummary
+          label="Snowfall 14d"
+          value={formatSnow(row.weather.snowfall14Cm)}
+        />
+        <FlightSummary
+          label="Snow depth"
+          value={formatSnow(row.weather.snowDepthCm)}
+        />
+        <FlightSummary
+          label="Avg temp"
+          value={formatTemperature(row.weather.avgTempC)}
+        />
+        <FlightSummary
+          label="Avg wind"
+          value={
+            row.weather.avgWindKmh === null
+              ? "Not available"
+              : `${row.weather.avgWindKmh.toFixed(1)} km/h`
+          }
+        />
+        <FlightSummary
+          label="Score mix"
+          value={`7d ${row.weather.scoreBreakdown.snowfall7} / depth ${row.weather.scoreBreakdown.snowDepth}`}
+        />
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <section className="grid gap-2 rounded-md border p-4">
+          <div className="flex items-center justify-between gap-2">
+            <strong>Airport used</strong>
+            {row.airportUsed ? (
+              <Badge variant="secondary">
+                Class {row.airportUsed.accessClass}
+              </Badge>
+            ) : null}
+          </div>
+          {row.airportUsed ? (
+            <div className="grid gap-1 text-sm">
+              <span>{row.airportUsed.name}</span>
+              <span className="text-muted-foreground">
+                {[row.airportUsed.iataCode, row.airportUsed.municipality]
+                  .filter(Boolean)
+                  .join(" • ")}
+              </span>
+              <span className="text-muted-foreground">
+                {formatDistance(row.airportUsed.distanceKm)}
+              </span>
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">
+              No linked airport candidates were available for this resort.
+            </p>
+          )}
+        </section>
+
+        <section className="grid gap-3 rounded-md border p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <strong>Flight options</strong>
+            <span className="text-muted-foreground text-sm">
+              Cabin {cabin} • max {maxStops} stop
+              {maxStops === 1 ? "" : "s"}
+            </span>
+          </div>
+          {row.flightMatch.matchingFlight ? (
+            <FlightItinerary
+              flight={row.flightMatch.matchingFlight}
+              label="Preset match"
+            />
+          ) : null}
+          {shouldShowFallback ? (
+            <FlightItinerary flight={fallbackFlight} label={fallbackLabel} />
+          ) : null}
+          {row.flightMatch.matchingFlight ||
+          row.flightMatch.fallbackFlight ? null : (
+            <p className="text-muted-foreground text-sm">
+              No flights were found for the linked airports.
+            </p>
+          )}
+        </section>
+      </div>
+    </article>
   );
 }
 
 export function TravelTools() {
   const [tripType, setTripType] = useState<TripType>("round-trip");
-  const [origin, setOrigin] = useState("JFK");
-  const [destination, setDestination] = useState("LAX");
+  const [originAirport, setOriginAirport] = useState("LAX");
   const [departureDate, setDepartureDate] = useState(TODAY);
   const [returnDate, setReturnDate] = useState(defaultReturnDate);
-  const [adults, setAdults] = useState(1);
-  const [currency, setCurrency] = useState("USD");
-  const [flightResult, setFlightResult] = useState<FlightSearchResponse | null>(
+  const [cabin, setCabin] = useState<FlightCabin>("economy");
+  const [maxStops, setMaxStops] = useState<0 | 1 | 2>(1);
+  const [result, setResult] = useState<TravelRecommendationsResponse | null>(
     null
   );
-  const [flightError, setFlightError] = useState<string | null>(null);
-  const [isFlightLoading, setIsFlightLoading] = useState(false);
-  const [surfLocation, setSurfLocation] = useState("Margaret River");
-  const [snowLocation, setSnowLocation] = useState("Niseko");
-  const [surfResult, setSurfResult] = useState<SurfConditionsResponse | null>(
-    null
-  );
-  const [snowResult, setSnowResult] = useState<SnowConditionsResponse | null>(
-    null
-  );
-  const [surfError, setSurfError] = useState<string | null>(null);
-  const [snowError, setSnowError] = useState<string | null>(null);
-  const [loadingKind, setLoadingKind] = useState<WeatherKind | null>(null);
+  const [submittedPreset, setSubmittedPreset] =
+    useState<SubmittedPreset | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const flightStatus = useMemo(() => {
-    if (isFlightLoading) {
-      return "Searching flights. Only the first 3 results will be shown.";
+  const statusMessage = useMemo(() => {
+    if (isLoading) {
+      return "Ranking resorts and matching flights...";
     }
 
-    if (flightError) {
-      return "Search failed.";
+    if (error) {
+      return "Recommendations failed.";
     }
 
-    if (flightResult) {
-      return `Showing ${flightResult.flights.length} result${
-        flightResult.flights.length === 1 ? "" : "s"
-      }.`;
+    if (result) {
+      return `Showing ${result.results.length} ranked ski trip options.`;
     }
 
-    return "No search has run yet.";
-  }, [flightError, flightResult, isFlightLoading]);
+    return "No recommendation run yet.";
+  }, [error, isLoading, result]);
 
-  async function onFlightSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (isFlightLoading) {
+    if (isLoading) {
       return;
     }
 
-    setIsFlightLoading(true);
-    setFlightError(null);
-    setFlightResult(null);
+    setIsLoading(true);
+    setError(null);
+    setResult(null);
+    setSubmittedPreset(null);
 
     try {
-      const response = await fetch("/api/flights", {
+      const requestPreset = {
+        cabin,
+        maxStops,
+      };
+      const response = await fetch("/api/travel/recommendations", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          originAirport,
           tripType,
-          origin,
-          destination,
           departureDate,
           returnDate: tripType === "round-trip" ? returnDate : undefined,
-          adults,
-          currency,
+          preset: requestPreset,
         }),
       });
-      const payload = (await response.json()) as FlightApiResponse;
+      const payload = (await response.json()) as
+        | TravelRecommendationsResponse
+        | TravelApiError;
 
-      if (!response.ok || isFlightErrorResponse(payload)) {
-        setFlightError(
-          isFlightErrorResponse(payload)
+      if (!response.ok || isTravelApiError(payload)) {
+        setError(
+          isTravelApiError(payload)
             ? payload.error.message
-            : "Flight search failed."
+            : "Recommendations could not be loaded."
         );
         return;
       }
 
-      setFlightResult(payload);
+      setResult(payload);
+      setSubmittedPreset(requestPreset);
     } catch {
-      setFlightError(
-        "Flight search could not be reached. Check the app server."
+      setError(
+        "Recommendations could not be reached. Check the app server and cached resort weather snapshot."
       );
     } finally {
-      setIsFlightLoading(false);
-    }
-  }
-
-  async function loadConditions(kind: WeatherKind, location: string) {
-    const params = new URLSearchParams({ location });
-    const response = await fetch(`/api/weather/${kind}?${params.toString()}`);
-    const payload = (await response.json()) as
-      | WeatherResponse
-      | WeatherApiError;
-
-    if (!response.ok || isWeatherError(payload)) {
-      throw new Error(
-        isWeatherError(payload)
-          ? payload.error.message
-          : "Conditions could not be loaded."
-      );
-    }
-
-    return payload;
-  }
-
-  async function onSurfSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (loadingKind) {
-      return;
-    }
-
-    setLoadingKind("surf");
-    setSurfError(null);
-    setSurfResult(null);
-
-    try {
-      const result = await loadConditions("surf", surfLocation);
-      setSurfResult(result as SurfConditionsResponse);
-    } catch (error) {
-      setSurfError(
-        error instanceof Error ? error.message : "Surf conditions failed."
-      );
-    } finally {
-      setLoadingKind(null);
-    }
-  }
-
-  async function onSnowSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (loadingKind) {
-      return;
-    }
-
-    setLoadingKind("snow");
-    setSnowError(null);
-    setSnowResult(null);
-
-    try {
-      const result = await loadConditions("snow", snowLocation);
-      setSnowResult(result as SnowConditionsResponse);
-    } catch (error) {
-      setSnowError(
-        error instanceof Error ? error.message : "Snow conditions failed."
-      );
-    } finally {
-      setLoadingKind(null);
+      setIsLoading(false);
     }
   }
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
-        <div className="grid gap-4 rounded-lg border bg-background p-4">
+      <section className="grid gap-4 rounded-lg border bg-background p-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="grid gap-3">
           <div className="grid gap-1">
             <p className="text-muted-foreground text-sm">
-              Flights and forecasts
+              Bookable trips ranked by Balanced forecast score
             </p>
             <h1 className="font-semibold text-2xl tracking-normal">
-              Plan the next leg.
+              Find the best ski trips in the next two weeks.
             </h1>
             <p className="max-w-3xl text-muted-foreground text-sm">
-              Searches run only after submission. Flight results come through
-              the Python bridge, while surf and snow conditions stay server-side
-              through Open-Meteo.
+              We scan the strongest snow forecasts first, then keep going until
+              the list has trips with at least one available itinerary.
             </p>
           </div>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="secondary">Top 10 bookable ski trips</Badge>
+            <Badge variant="secondary">Fallback flights included</Badge>
+          </div>
         </div>
-        <div
-          aria-label="Aircraft wing over a coastline"
-          className="hidden h-full min-h-40 rounded-lg bg-center bg-cover lg:block"
-          role="img"
-          style={{
-            backgroundImage:
-              "url(https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=720&q=80)",
-          }}
-        />
+        <div className="flex items-start justify-end">
+          <Button
+            nativeButton={false}
+            render={<Link href="/travel/ranking-lab" />}
+          >
+            Open Ranking Lab
+          </Button>
+        </div>
       </section>
 
       <section className="grid gap-4 rounded-lg border bg-background p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-semibold text-xl">Flight search</h2>
-            <p className="text-muted-foreground text-sm">{flightStatus}</p>
+            <h2 className="font-semibold text-xl">Travel recommendations</h2>
+            <p className="text-muted-foreground text-sm">{statusMessage}</p>
           </div>
-          {flightResult?.priceTrend ? (
-            <Badge variant="secondary">
-              Price trend: {flightResult.priceTrend}
-            </Badge>
+          {result ? (
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="secondary">
+                Snapshot: {result.rankingRefreshDate}
+              </Badge>
+              {result.rankingIsStale ? (
+                <Badge variant="outline">Snapshot may be stale</Badge>
+              ) : null}
+            </div>
           ) : null}
         </div>
 
-        <form className="grid gap-4" onSubmit={onFlightSubmit}>
+        <form className="grid gap-4" onSubmit={onSubmit}>
           <fieldset className="flex flex-wrap gap-2">
             <legend className="sr-only">Trip type</legend>
             {(["one-way", "round-trip"] as const).map((type) => (
@@ -348,47 +498,35 @@ export function TravelTools() {
           </fieldset>
 
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
-            <Field id="flight-origin" label="Origin">
+            <Field id="origin-airport" label="Home airport">
               <Input
                 autoComplete="off"
-                id="flight-origin"
+                id="origin-airport"
                 inputMode="text"
                 maxLength={3}
                 onChange={(event) =>
-                  setOrigin(event.target.value.toUpperCase())
+                  setOriginAirport(event.target.value.toUpperCase())
                 }
                 pattern="[A-Za-z]{3}"
                 required
-                value={origin}
+                value={originAirport}
               />
             </Field>
-            <Field id="flight-destination" label="Destination">
+            <Field id="departure-date" label="Depart date">
               <Input
-                autoComplete="off"
-                id="flight-destination"
-                inputMode="text"
-                maxLength={3}
-                onChange={(event) =>
-                  setDestination(event.target.value.toUpperCase())
-                }
-                pattern="[A-Za-z]{3}"
-                required
-                value={destination}
-              />
-            </Field>
-            <Field id="flight-departure-date" label="Depart date">
-              <Input
-                id="flight-departure-date"
+                id="departure-date"
+                max={latestForecastDate()}
+                min={TODAY}
                 onChange={(event) => setDepartureDate(event.target.value)}
                 required
                 type="date"
                 value={departureDate}
               />
             </Field>
-            <Field id="flight-return-date" label="Return date">
+            <Field id="return-date" label="Return date">
               <Input
                 disabled={tripType === "one-way"}
-                id="flight-return-date"
+                id="return-date"
                 min={departureDate}
                 onChange={(event) => setReturnDate(event.target.value)}
                 required={tripType === "round-trip"}
@@ -396,260 +534,72 @@ export function TravelTools() {
                 value={returnDate}
               />
             </Field>
-            <Field id="flight-adults" label="Adults">
-              <Input
-                id="flight-adults"
-                max={9}
-                min={1}
-                onChange={(event) => setAdults(Number(event.target.value))}
-                required
-                type="number"
-                value={adults}
-              />
-            </Field>
-            <Field id="flight-currency" label="Currency">
-              <Input
-                autoComplete="off"
-                id="flight-currency"
-                inputMode="text"
-                maxLength={3}
+            <Field id="cabin" label="Cabin">
+              <NativeSelect
+                id="cabin"
                 onChange={(event) =>
-                  setCurrency(event.target.value.toUpperCase())
+                  setCabin(event.target.value as FlightCabin)
                 }
-                pattern="[A-Za-z]{3}"
-                required
-                value={currency}
-              />
+                value={cabin}
+              >
+                <NativeSelectOption value="economy">Economy</NativeSelectOption>
+                <NativeSelectOption value="premium-economy">
+                  Premium economy
+                </NativeSelectOption>
+                <NativeSelectOption value="business">
+                  Business
+                </NativeSelectOption>
+                <NativeSelectOption value="first">First</NativeSelectOption>
+              </NativeSelect>
+            </Field>
+            <Field id="max-stops" label="Max stops">
+              <NativeSelect
+                id="max-stops"
+                onChange={(event) =>
+                  setMaxStops(Number(event.target.value) as 0 | 1 | 2)
+                }
+                value={String(maxStops)}
+              >
+                <NativeSelectOption value="0">Nonstop only</NativeSelectOption>
+                <NativeSelectOption value="1">Up to 1 stop</NativeSelectOption>
+                <NativeSelectOption value="2">Up to 2 stops</NativeSelectOption>
+              </NativeSelect>
             </Field>
           </div>
 
-          <Button className="w-fit" disabled={isFlightLoading} type="submit">
-            {isFlightLoading ? "Searching..." : "Search flights"}
+          <Button className="w-fit" disabled={isLoading} type="submit">
+            {isLoading ? "Finding trips..." : "Find top ski trips"}
           </Button>
         </form>
 
-        {flightError ? (
+        {error ? (
           <Alert variant="destructive">
-            <AlertDescription>{flightError}</AlertDescription>
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : null}
-
-        {isFlightLoading ? (
-          <output className="grid gap-2">
-            {[1, 2, 3].map((row) => (
-              <div
-                className="min-h-16 rounded-md border bg-muted/20 p-4 text-muted-foreground text-sm"
-                key={row}
-              >
-                Loading result row...
-              </div>
-            ))}
-          </output>
-        ) : null}
-
-        {flightResult ? (
-          <div aria-live="polite" className="grid gap-2">
-            {flightResult.flights.length ? (
-              flightResult.flights.map((flight) => (
-                <article
-                  className="grid gap-3 rounded-md border p-4 md:grid-cols-[1.2fr_1.2fr_0.7fr_0.8fr_0.6fr] md:items-center"
-                  key={`${flight.rank}-${flight.name}`}
-                >
-                  <div className="flex min-w-0 items-center gap-2">
-                    {flight.isBest ? <Badge>Best</Badge> : null}
-                    <strong>{flight.name || "Flight option"}</strong>
-                  </div>
-                  <div className="text-sm">
-                    <span>{flight.departure || "Departure time missing"}</span>
-                    <span className="px-2 text-muted-foreground">to</span>
-                    <span>{flight.arrival || "Arrival time missing"}</span>
-                  </div>
-                  <div className="text-sm">
-                    {flight.duration || "Duration missing"}
-                  </div>
-                  <div className="text-sm">
-                    {formatStops(flight.stops)}
-                    {flight.delay ? `, ${flight.delay}` : ""}
-                  </div>
-                  <strong className="md:justify-self-end">
-                    {formatPrice(flight.price)}
-                  </strong>
-                </article>
-              ))
-            ) : (
-              <p className="text-muted-foreground text-sm">
-                No flights came back for that search.
-              </p>
-            )}
-          </div>
-        ) : null}
       </section>
 
-      <section className="grid gap-4 rounded-lg border bg-background p-4">
-        <div>
-          <h2 className="font-semibold text-xl">Surf and snow</h2>
-          <p className="text-muted-foreground text-sm">
-            Check water and mountain conditions before picking the route.
-          </p>
-        </div>
+      {result?.rankingIsStale ? (
+        <Alert>
+          <AlertDescription>
+            Recommendations are using the latest available forecast snapshot
+            from {result.rankingRefreshDate}.
+          </AlertDescription>
+        </Alert>
+      ) : null}
 
-        <div className="grid gap-4 xl:grid-cols-2">
-          <article className="grid gap-4 rounded-md border p-4">
-            <form
-              className="grid gap-3 sm:grid-cols-[1fr_auto]"
-              onSubmit={onSurfSubmit}
-            >
-              <Field id="surf-location" label="Surf spot">
-                <Input
-                  id="surf-location"
-                  onChange={(event) => setSurfLocation(event.target.value)}
-                  required
-                  value={surfLocation}
-                />
-              </Field>
-              <Button
-                className="self-end"
-                disabled={loadingKind !== null}
-                type="submit"
-              >
-                {loadingKind === "surf" ? "Checking..." : "Check surf"}
-              </Button>
-            </form>
-
-            {surfError ? (
-              <Alert variant="destructive">
-                <AlertDescription>{surfError}</AlertDescription>
-              </Alert>
-            ) : null}
-
-            {surfResult ? (
-              <div className="grid gap-3">
-                <div className="flex flex-wrap justify-between gap-2 text-sm">
-                  <strong>{locationLabel(surfResult)}</strong>
-                  <span className="text-muted-foreground">
-                    {surfResult.current.time}
-                  </span>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3">
-                  <Metric
-                    detail={`${formatDirection(
-                      surfResult.current.waveDirection
-                    )} / ${formatValue(surfResult.current.wavePeriod, "s")}`}
-                    label="Wave"
-                    value={formatValue(surfResult.current.waveHeight, "m")}
-                  />
-                  <Metric
-                    detail={`${formatDirection(
-                      surfResult.current.swellDirection
-                    )} / ${formatValue(surfResult.current.swellPeriod, "s")}`}
-                    label="Swell"
-                    value={formatValue(surfResult.current.swellHeight, "m")}
-                  />
-                  <Metric
-                    detail={formatDirection(surfResult.current.windDirection)}
-                    label="Wind"
-                    value={formatValue(surfResult.current.windSpeed, "km/h")}
-                  />
-                  <Metric
-                    detail="Modelled sea level"
-                    label="Tide height"
-                    value={formatValue(surfResult.current.tideHeight, "m")}
-                  />
-                  <Metric
-                    detail={surfResult.source}
-                    label="Sea temp"
-                    value={formatValue(
-                      surfResult.current.seaSurfaceTemperature,
-                      "C"
-                    )}
-                  />
-                  <Metric
-                    detail={formatDirection(
-                      surfResult.current.oceanCurrentDirection
-                    )}
-                    label="Ocean current"
-                    value={formatValue(
-                      surfResult.current.oceanCurrentVelocity,
-                      "km/h"
-                    )}
-                  />
-                </div>
-              </div>
-            ) : null}
-          </article>
-
-          <article className="grid gap-4 rounded-md border p-4">
-            <form
-              className="grid gap-3 sm:grid-cols-[1fr_auto]"
-              onSubmit={onSnowSubmit}
-            >
-              <Field id="snow-location" label="Ski area">
-                <Input
-                  id="snow-location"
-                  onChange={(event) => setSnowLocation(event.target.value)}
-                  required
-                  value={snowLocation}
-                />
-              </Field>
-              <Button
-                className="self-end"
-                disabled={loadingKind !== null}
-                type="submit"
-              >
-                {loadingKind === "snow" ? "Checking..." : "Check snow"}
-              </Button>
-            </form>
-
-            {snowError ? (
-              <Alert variant="destructive">
-                <AlertDescription>{snowError}</AlertDescription>
-              </Alert>
-            ) : null}
-
-            {snowResult ? (
-              <div className="grid gap-3">
-                <div className="flex flex-wrap justify-between gap-2 text-sm">
-                  <strong>{locationLabel(snowResult)}</strong>
-                  <span className="text-muted-foreground">
-                    {snowResult.current.time}
-                  </span>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <Metric
-                    detail={`Wind ${formatValue(
-                      snowResult.current.windSpeed,
-                      "km/h"
-                    )} / ${formatDirection(snowResult.current.windDirection)}`}
-                    label="Current temp"
-                    value={formatValue(snowResult.current.temperature, "C")}
-                  />
-                  <Metric
-                    detail={`Snow depth ${formatValue(
-                      snowResult.current.snowDepth,
-                      "m"
-                    )}`}
-                    label="Snowfall now"
-                    value={formatValue(snowResult.current.snowfall, "cm")}
-                  />
-                </div>
-                <div className="grid gap-2 lg:grid-cols-5 xl:grid-cols-1 2xl:grid-cols-5">
-                  {snowResult.daily.map((day) => (
-                    <Metric
-                      detail={`${formatValue(
-                        day.temperatureMin,
-                        "C"
-                      )} to ${formatValue(day.temperatureMax, "C")}`}
-                      key={day.date}
-                      label={day.date}
-                      value={formatValue(day.snowfall, "cm")}
-                    />
-                  ))}
-                </div>
-              </div>
-            ) : null}
-          </article>
-        </div>
-      </section>
+      {result ? (
+        <section className="grid gap-4">
+          {result.results.map((row) => (
+            <RecommendationCard
+              cabin={submittedPreset?.cabin ?? cabin}
+              key={row.resort.id}
+              maxStops={submittedPreset?.maxStops ?? maxStops}
+              row={row}
+            />
+          ))}
+        </section>
+      ) : null}
     </main>
   );
 }

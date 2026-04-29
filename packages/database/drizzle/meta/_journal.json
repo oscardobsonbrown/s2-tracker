@@ -36,6 +36,13 @@
       "when": 1776599967898,
       "tag": "0004_add_airports",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1776905922770,
+      "tag": "0005_add_travel_ranking_tables",
+      "breakpoints": true
     }
   ]
 }
