@@ -11,6 +11,10 @@ interface RootLayoutProperties {
   readonly children: ReactNode;
 }
 
+const isAgentationEnabled =
+  process.env.NODE_ENV === "development" &&
+  process.env.AGENTATION_ENABLED === "true";
+
 const RootLayout = ({ children }: RootLayoutProperties) => (
   <html className={fonts} lang="en" suppressHydrationWarning>
     <body>
@@ -27,9 +31,7 @@ const RootLayout = ({ children }: RootLayoutProperties) => (
         </DesignSystemProvider>
       </AnalyticsProvider>
       <Toolbar />
-      {process.env.NODE_ENV === "development" && (
-        <Agentation endpoint="http://localhost:4747" />
-      )}
+      {isAgentationEnabled && <Agentation endpoint="http://localhost:4747" />}
     </body>
   </html>
 );

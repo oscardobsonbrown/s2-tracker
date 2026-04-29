@@ -39,6 +39,8 @@
     "db:check": "pnpm --filter @repo/database db:check",
     "db:import:airports": "pnpm --filter @repo/database db:import:airports",
     "db:import:ski-resorts": "pnpm --filter @repo/database db:import:ski-resorts",
+    "db:import:resort-airport-links": "pnpm --filter @repo/database db:import:resort-airport-links",
+    "db:import:resort-weather-scores": "pnpm --filter @repo/database db:import:resort-weather-scores",
     "db:migrate": "pnpm --filter @repo/database db:migrate",
     "db:studio": "pnpm --filter @repo/database db:studio",
     "dead-code": "knip --no-exit-code",

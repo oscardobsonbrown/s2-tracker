@@ -1,13 +1,13 @@
-import { loadEnvFile } from "node:process";
 import { Pool } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-serverless";
+import { loadDatabaseEnv } from "./load-database-env";
 import { skiResorts } from "./schema";
 
 const openSkiMapCsvUrl = "https://tiles.openskimap.org/csv/ski_areas.csv";
 const batchSize = 500;
 
 if (!process.env.DATABASE_URL) {
-  loadEnvFile(".env");
+  loadDatabaseEnv();
 }
 
 const databaseUrl = process.env.DATABASE_URL;

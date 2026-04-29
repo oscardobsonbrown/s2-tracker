@@ -4,6 +4,14 @@ import { loadEnvFile } from "node:process";
 import { defineConfig } from "drizzle-kit";
 
 if (!process.env.DATABASE_URL) {
+  const envLocalPath = join(process.cwd(), ".env.local");
+
+  if (existsSync(envLocalPath)) {
+    loadEnvFile(envLocalPath);
+  }
+}
+
+if (!process.env.DATABASE_URL) {
   const envPath = join(process.cwd(), ".env");
 
   if (existsSync(envPath)) {

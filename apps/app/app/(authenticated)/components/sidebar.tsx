@@ -49,10 +49,12 @@ import {
   SendIcon,
   Settings2Icon,
   ShareIcon,
+  SlidersHorizontalIcon,
   SquareTerminalIcon,
   Trash2Icon,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Search } from "./search";
 
@@ -160,6 +162,11 @@ const data = {
       icon: PlaneIcon,
     },
     {
+      title: "Ranking Lab",
+      url: "/travel/ranking-lab",
+      icon: SlidersHorizontalIcon,
+    },
+    {
       title: "Webhooks",
       url: "/webhooks",
       icon: AnchorIcon,
@@ -196,6 +203,7 @@ const data = {
 
 export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
   const sidebar = useSidebar();
+  const pathname = usePathname();
 
   return (
     <>
@@ -314,7 +322,15 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
               <SidebarMenu>
                 {data.navSecondary.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton render={<Link href={item.url} />}>
+                    <SidebarMenuButton
+                      isActive={
+                        pathname === item.url ||
+                        (item.url === "/travel" &&
+                          pathname.startsWith("/travel") &&
+                          pathname !== "/travel/ranking-lab")
+                      }
+                      render={<Link href={item.url} />}
+                    >
                       <item.icon />
                       <span>{item.title}</span>
                     </SidebarMenuButton>
