@@ -24,7 +24,7 @@
     "@repo/payments": "workspace:*",
     "@t3-oss/env-nextjs": "^0.13.8",
     "drizzle-orm": "^0.45.2",
-    "import-in-the-middle": "^2.0.0",
+    "import-in-the-middle": "^3.0.1",
     "next": "16.2.3",
     "next-swagger-doc": "^0.4.1",
     "openapi-types": "^12.1.3",
